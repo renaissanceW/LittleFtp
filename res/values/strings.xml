@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, LittleFtpActivity!</string>
+    <string name="app_name">LittleFtp</string>
+    
+    <string name="login_host">Host</string>
+    <string name="login_user">User</string>
+    <string name="login_password">Password</string>
+    <string name="login_connect">Connect</string>
+    
+    <string name="explorer_back">Back</string>
+    <string name="explorer_download">Download</string>
+    <string name="explorer_upload">Upload</string>
+    <string name="explorer_refresh">Refresh</string>
+    <string name="explorer_tasks">Tasks</string>
+    
+    <string name="task_up">Upload</string>
+    <string name="task_down">Download</string>
+
+	<string name="tasklist_back">back</string>
+	<string name="tasklist_cancel">cancel</string>
+  
+
+</resources>

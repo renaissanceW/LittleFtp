@@ -119,6 +119,10 @@ public class FtpMaster extends Thread{
 	 * "port" - String
 	 * "user" - String
 	 * "password" - String
+	 * 
+	 * "progress" - float
+	 * "accSize" - long
+	 * "speed" - float
 	 */
 	private void addDownTask(ArrayList<FTPFile> files) {
 		for (FTPFile f : files) {

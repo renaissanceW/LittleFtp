@@ -3,6 +3,7 @@ package n.w;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeSet;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,8 +13,12 @@ import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class TaskListActivity extends Activity {
@@ -38,7 +43,8 @@ public class TaskListActivity extends Activity {
 		
 		mListAdapter = new TaskListAdapter(this,null);
 		mListView.setAdapter(mListAdapter);
-		mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		//mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		mListView.setOnItemClickListener(new TaskItemClickListener());
 		
 		
 		
@@ -68,11 +74,7 @@ public class TaskListActivity extends Activity {
 		finish();
 	}
 	public void handleCancel(View v){
-		long[] selection = mListView.getCheckedItemIds();
-		if(selection.length>0){
-			mListAdapter.markTaskCancel(selection);
-			mListView.clearChoices();
-		}		
+		mListAdapter.markTaskCancel();	
 	}
 	
 	class TaskListHandler extends Handler{
@@ -80,7 +82,7 @@ public class TaskListActivity extends Activity {
 		public void handleMessage(Message msg){
 			switch(msg.what){
 			case C.MSG_TASKLIST_UPDATE:
-				mListAdapter.setData((ArrayList<Task>)msg.obj);
+				mListAdapter.setData((ArrayList<Task>)msg.obj);			
 			case C.MSG_TASKLIST_TIMER_UPDATE:
 				mListAdapter.notifyDataSetChanged();
 				break;
@@ -89,7 +91,41 @@ public class TaskListActivity extends Activity {
 		}
 	}
 	
+	
+	class TaskItemClickListener implements AdapterView.OnItemClickListener{
+
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+			//MyLog.d("TaskList", "item "+position+" checked");
+			mListAdapter.select(position);		
+		}
+		
+	}
+	
+	
 	class TaskListAdapter extends BaseAdapter {
+		public TreeSet<Integer> mSelection = new TreeSet<Integer>();
+		
+		public boolean select(int i){
+			if(mSelection.contains(i)){
+				mSelection.remove(i);			
+				return false;
+			}else{
+				mSelection.add(i);
+				return true;
+			}			
+		}
+		
+		public void markTaskCancel() {
+			Task[] t = new Task[mSelection.size()];
+			int k = 0;
+			for (int i : mSelection) {
+				t[k++] = mTasks.get(i);		
+			}
+			mFtpMaster.mManager.cancelTask(t);	
+			mSelection.clear();
+			C.sendMessage(mFtpMaster.getHandler(),C.MSG_MASTER_GET_TASK_STATUS);
+		}
+		
 		private ArrayList<Task> mTasks;
 		public TaskListAdapter(Context ctx, ArrayList<Task> t){
 			mCtx = ctx;
@@ -125,44 +161,74 @@ public class TaskListActivity extends Activity {
 		
 		public View getView(int position, View convertView, ViewGroup parent) {
 			if(convertView == null){
-				convertView = mInflater.inflate(R.layout.task_item, null);
+				convertView = mInflater.inflate(R.layout.task_item_new, null);
 			}
 			
-			Bundle task = mTasks.get(position).mData;
-			TextView type = (TextView)convertView.findViewById(R.id.task_type);
+			Task task = mTasks.get(position);
+			Bundle data = mTasks.get(position).mData;
+			ImageView type = (ImageView)convertView.findViewById(R.id.task_type);
 			TextView name = (TextView)convertView.findViewById(R.id.task_name);
 			TextView progress = (TextView)convertView.findViewById(R.id.task_progress);
 			TextView speed = (TextView)convertView.findViewById(R.id.task_speed);
+			TextView status = (TextView)convertView.findViewById(R.id.task_status);
+			TextView size = (TextView)convertView.findViewById(R.id.task_size);
 			
+			ProgressBar progress_bar = (ProgressBar)convertView.findViewById(R.id.task_progress_bar);
 			
-			
-			if(task.getInt("action")==C.TASK_ACTION_DOWNLOAD){
-				type.setText("Download");
-				String remote = task.getString("remote");	
-				name.setText(remote.substring(remote.lastIndexOf("/")+1));
+			/*check box*/
+			CheckBox cb = (CheckBox)convertView.findViewById(R.id.task_check_box);
+			if(mSelection.contains(position)){
+				cb.setChecked(true);
 			}else{
-				type.setText("Upload");
-				String local = task.getString("local");	
-				name.setText(local.substring(local.lastIndexOf("/")+1));
+				cb.setChecked(false);
 			}
 			
-			float fP =(float)((int)(10*task.getFloat("progress")))/10;
+			/*type & name*/
+			if(data.getInt("action")==C.TASK_ACTION_DOWNLOAD){
+				type.setImageResource(R.drawable.download);
+				String remote = data.getString("remote");			
+				String fileName = remote.substring(remote.lastIndexOf("/")+1);
+				name.setText(fileName);
+			}else{
+				type.setImageResource(R.drawable.upload);
+				String local = data.getString("local");	
+				String fileName = local.substring(local.lastIndexOf("/")+1);
+				name.setText(fileName);
+			}
+
+			/*progress*/
+			float fP =(float)((int)(10*data.getFloat("progress")))/10;
 			progress.setText(""+fP+"%");
-			float fS =(float)((int)(10*task.getFloat("speed")))/10;
+			progress_bar.setProgress((int)fP);
+			
+			/*speed*/
+			float fS =(float)((int)(10*data.getFloat("speed")))/10;
 			speed.setText(fS+"KB/s");
+			
+			/*status*/
+			if(task.mStatus==Task.STATUS_WAIT){
+				status.setText("Waiting");
+			}else{
+				status.setText("tranferring");
+			}
+			/*size*/
+			long totalSize = data.getLong("size");
+			long accSize = data.getLong("accSize");
+			long k = totalSize/1024;
+			long m = k/1024;
+		
+			String s = (m!=0)? ""+accSize/(1024*1024)+"MB/"+m+"MB":
+				(k!=0)?""+accSize/1024+"KB/"+k+"KB":
+					""+accSize+"/"+totalSize;
+			
+			size.setText(s);
 			
 	
 			return convertView;
 		}
 		
 		
-		public void markTaskCancel(long[] selection) {
-			for (long i : selection) {
-				Task t = mTasks.get((int) i);
-				mFtpMaster.mManager.cancelTask(t);
-				C.sendMessage(mFtpMaster.getHandler(),C.MSG_MASTER_GET_TASK_STATUS);
-			}
-		}
+	
 		
 
 	}

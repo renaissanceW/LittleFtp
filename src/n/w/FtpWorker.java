@@ -215,6 +215,7 @@ public class FtpWorker extends Thread {
 				putSpeed(end_time-start_time, len);
 				start_time = end_time;
 				
+				mTask.mData.putLong("accSize", accSize);
 				progress = ((float) 100 * accSize / totalSize);
 				mTask.mData.putFloat("progress", progress);
 				speed = getSpeed();

@@ -1,0 +1,82 @@
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/relativeLayout1"
+        android:descendantFocusability="blocksDescendants"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
+
+        <ImageView
+            android:id="@+id/task_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/back" />
+
+        <CheckBox
+            android:id="@+id/task_check_box"
+            android:clickable="false"
+            android:layout_width="wrap_content"
+            android:layout_height="32dip"
+            android:layout_alignParentLeft="true"
+            android:layout_alignRight="@+id/task_type"
+            android:layout_below="@+id/task_type"/>
+
+        <TextView
+            android:id="@+id/task_name"
+            android:layout_width="fill_parent"
+            android:singleLine="true"
+            android:layout_height="21dip"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/task_type"
+            android:textSize="@dimen/small"
+            android:text="task_name" />
+
+        <TextView
+            android:id="@+id/task_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/small"
+            android:layout_below="@+id/task_name"
+            android:layout_alignParentRight="true"
+            android:text="task_progress" />
+
+        <ProgressBar
+            android:id="@+id/task_progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:progress="0"
+            android:layout_width="wrap_content"
+            android:layout_height="21dip"
+			android:layout_toLeftOf="@id/task_progress"
+			android:layout_marginRight="10dip"
+			android:layout_below="@id/task_name"
+            android:layout_alignLeft="@id/task_name"/>
+
+        <TextView
+            android:id="@+id/task_status"
+            android:layout_width="wrap_content"
+            android:layout_height="21dip"
+            android:layout_alignBottom="@+id/task_check_box"
+            android:layout_alignLeft="@+id/task_progress_bar"
+            android:textSize="@dimen/small"
+            android:text="task_status" />
+
+        <TextView
+            android:id="@+id/task_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="21dip"
+            android:layout_alignBottom="@+id/task_check_box"
+            android:layout_centerHorizontal="true"
+            android:textSize="@dimen/small"
+            android:text="task_speed" />
+
+        <TextView
+            android:id="@+id/task_size"
+            android:layout_width="wrap_content"
+            android:layout_height="21dip"
+            android:layout_alignBottom="@+id/task_check_box"
+            android:layout_alignParentRight="true"
+            android:textSize="@dimen/small"
+            android:text="task_size" />
+
+    </RelativeLayout>

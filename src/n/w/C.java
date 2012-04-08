@@ -25,6 +25,10 @@ public class C {
 	 * "port" - String
 	 * "user" - String
 	 * "password" - int
+	 * 
+	 * "progress" - float
+	 * "accSize" - long
+	 * "speed" - float
 	 */
 	public static final int MSG_WORKER_FILEOP				 	= MSG_WORKER_DISCONNECT+1;
 	

@@ -108,15 +108,17 @@ public class TaskManager {
 	/*
 	 * this is triggered by the user selection
 	 */
-	public synchronized void cancelTask(Task task){
+	public synchronized void cancelTask(Task[] t){
 		
-		if(task.mQueue == mWorkingQ){
-			mWorker[task.mWorkerId].cancelTask();		
-		}else if(task.mQueue == mWaitingQ){
-			mWaitingQ.remove(task);
+		for (Task task : t) {
+			if (task.mQueue == mWorkingQ) {
+				mWorker[task.mWorkerId].cancelTask();
+			} else if (task.mQueue == mWaitingQ) {
+				mWaitingQ.remove(task);
+			}
+			MyLog.d("Manager", "CANCEL "+task.mData);
 		}
-		
-		MyLog.d("Manager", "CANCEL "+task.mData);
+
 	}
 	
 	

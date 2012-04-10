@@ -10,7 +10,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -69,13 +74,6 @@ public class TaskListActivity extends Activity {
 		mTimer.cancel();
 	}
 
-	
-	public void handleBack(View v){
-		finish();
-	}
-	public void handleCancel(View v){
-		mListAdapter.markTaskCancel();	
-	}
 	
 	class TaskListHandler extends Handler{
 		@SuppressWarnings("unchecked")
@@ -207,9 +205,9 @@ public class TaskListActivity extends Activity {
 			
 			/*status*/
 			if(task.mStatus==Task.STATUS_WAIT){
-				status.setText("Waiting");
+				status.setText(R.string.tasklist_status_wait);
 			}else{
-				status.setText("tranferring");
+				status.setText(R.string.tasklist_status_transfer);
 			}
 			/*size*/
 			long totalSize = data.getLong("size");
@@ -227,10 +225,34 @@ public class TaskListActivity extends Activity {
 			return convertView;
 		}
 		
+
+	}
+
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
 		
-	
+		switch(item.getItemId()){
+		case R.id.tasklist_delete:
+			mListAdapter.markTaskCancel();
+			return true;
+		case R.id.tasklist_back:
+			finish();
+			return true;			
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 		
 
+	}
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.tasklist_menu, menu);
+	    return true;
 	}
 
 }

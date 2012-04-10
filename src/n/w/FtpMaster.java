@@ -267,12 +267,27 @@ public class FtpMaster extends Thread{
 		ArrayList<FTPFile> result = new ArrayList<FTPFile>();
 		String names = "";
 		try {
+			ArrayList<FTPFile> folders = new ArrayList<FTPFile>();
+			ArrayList<FTPFile> files = new ArrayList<FTPFile>();
+			
+			/*seperate folders with files*/
 			for (FTPFile f : mFtp.listFiles()) {
 				if (f != null) {
-					result.add(f);
-					names += f.getName()+" ";
+					switch(f.getType()){
+					case FTPFile.DIRECTORY_TYPE:
+						folders.add(f);
+						break;
+					case FTPFile.FILE_TYPE:
+						files.add(f);
+						break;
+					}
 				}
+				
+				names += f.getName()+" ";
 			}
+			
+			result.addAll(folders);
+			result.addAll(files);
 			MyLog.d("Master", "ls " + mWorkingDir + " success!");
 			MyLog.d("Master", "ls content: "+names);
 			sendReply(C.MSG_MASTER_LS_REPLY, C.FTP_OP_SUCC, result);

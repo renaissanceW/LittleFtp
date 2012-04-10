@@ -4,12 +4,18 @@ import java.util.ArrayList;
 
 import org.apache.commons.net.ftp.FTPFile;
 
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -23,9 +29,6 @@ public class ExplorerActivity extends Activity {
 	private Context mCtx;
 
 
-	
-
-	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,11 +40,7 @@ public class ExplorerActivity extends Activity {
         mFtpMaster = FtpMaster.getFtpMasterInstance();
         mHandler = new ExplorerHandler();      
 
-        
-        
-        findViewById(R.id.explorer_back).setOnClickListener(new BackBtnListener());
-        findViewById(R.id.explorer_download).setOnClickListener(new DownloadBtnListener());
-        findViewById(R.id.explorer_tasks).setOnClickListener(new TaskBtnListener());   
+       
         
         
     }
@@ -85,7 +84,10 @@ public class ExplorerActivity extends Activity {
         			}
         			break;
         		case C.MSG_MASTER_LS_REPLY:
-					if (msg.arg1 == C.FTP_OP_SUCC) {		
+					if (msg.arg1 == C.FTP_OP_SUCC) {	
+						
+					
+			
 						ArrayList<FTPFile> data = (ArrayList<FTPFile>) msg.obj;
 						if(mFileListAdapter == null){
 							createFileListUI(data);
@@ -136,29 +138,47 @@ public class ExplorerActivity extends Activity {
     
     
     
-    class BackBtnListener implements View.OnClickListener{
-    	public void onClick(View v) {
-			// TODO Auto-generated method stub
+   
+    
+    
+    
+    
+
+
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.explorer_menu, menu);
+	    return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()){
+
+		case R.id.explorer_back:
 			sendMasterRequest(C.MSG_MASTER_BACK,null);
-		}
-    }
-  
-    class DownloadBtnListener implements View.OnClickListener{
-    	public void onClick(View v) {		
-    		ArrayList<FTPFile> msg = mFileListAdapter.getSelection(mFileListView.getCheckedItemIds());
+			return true;	
+		case R.id.explorer_download:
+			ArrayList<FTPFile> msg = mFileListAdapter.getSelection(mFileListView.getCheckedItemIds());
     		if(msg!=null){
     			mFileListView.clearChoices();
     			mFileListAdapter.notifyDataSetChanged();
     			sendMasterRequest(C.MSG_MASTER_FILE_DOWN, msg);
     		}	
-		}
-    }
-    
-    
-    class TaskBtnListener implements View.OnClickListener{
-    	public void onClick(View v) {  		
-    		Intent intent = new Intent(mCtx, TaskListActivity.class);
+			return true;
+		case R.id.explorer_upload:
+			
+			return true;
+
+		case R.id.explorer_tasklist:
+			Intent intent = new Intent(mCtx, TaskListActivity.class);
     		startActivity(intent);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
-    }
+	}
 }

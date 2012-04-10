@@ -1,11 +1,11 @@
 package n.w;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import org.apache.commons.net.ftp.FTPFile;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,13 +74,14 @@ public class ListDirAdapter extends BaseAdapter {
 	public View getView(int position, View convertView, ViewGroup parent) {
 		// TODO Auto-generated method stub
 		if (convertView == null) {
-			convertView = mInflater.inflate(R.layout.file_item, null);
+			convertView = mInflater.inflate(R.layout.file_item_new, null);
 		}
 
 		FTPFile f = mFileList.get(position);
 		TextView name = (TextView) convertView.findViewById(R.id.file_name);
 		ImageView type = (ImageView) convertView.findViewById(R.id.file_type);
 		TextView size = (TextView) convertView.findViewById(R.id.file_size);
+		TextView time = (TextView) convertView.findViewById(R.id.file_time);
 
 		name.setText(f.getName());
 
@@ -96,6 +97,11 @@ public class ListDirAdapter extends BaseAdapter {
 		String content = (m != 0) ? String.valueOf(m) + "MB"
 				: (k != 0) ? String.valueOf(k) + "KB" : "1KB";
 		size.setText(content);
+		
+		Calendar ca = f.getTimestamp();
+		String t = ca.get(Calendar.YEAR) + "-" + (1+ca.get(Calendar.MONTH)) + "-"
+				+ ca.get(Calendar.DAY_OF_MONTH);
+		time.setText(t);		
 
 		return convertView;
 	}

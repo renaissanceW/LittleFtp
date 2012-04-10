@@ -8,18 +8,21 @@
     <string name="login_user">User</string>
     <string name="login_password">Password</string>
     <string name="login_connect">Connect</string>
+  
+    
     
     <string name="explorer_back">Back</string>
+    <string name="explorer_local">Local</string>
+    <string name="explorer_tasklist">Task List</string>
+    <string name="explorer_disconnect">Disconnect</string>
+     <string name="explorer_refresh">Refresh</string>  
     <string name="explorer_download">Download</string>
     <string name="explorer_upload">Upload</string>
-    <string name="explorer_refresh">Refresh</string>
-    <string name="explorer_tasks">Tasks</string>
-    
-    <string name="task_up">Upload</string>
-    <string name="task_down">Download</string>
 
-	<string name="tasklist_back">back</string>
-	<string name="tasklist_cancel">cancel</string>
+	<string name="tasklist_back">Back</string>
+	<string name="tasklist_delete">Delete</string>	
+	<string name="tasklist_status_transfer">Transferring</string>
+	<string name="tasklist_status_wait">Waiting</string>
   
 
 </resources>

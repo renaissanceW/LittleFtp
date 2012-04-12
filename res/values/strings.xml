@@ -18,6 +18,7 @@
      <string name="explorer_refresh">Refresh</string>  
     <string name="explorer_download">Download</string>
     <string name="explorer_upload">Upload</string>
+    <string name="explorer_new">New Dir</string>
 
 	<string name="tasklist_back">Back</string>
 	<string name="tasklist_delete">Delete</string>	

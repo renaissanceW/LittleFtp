@@ -1,32 +1,35 @@
 package n.w;
 
-import java.util.ArrayList;
-
-import org.apache.commons.net.ftp.FTPFile;
-
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
 import android.app.Activity;
-import android.app.FragmentTransaction;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 
 public class ExplorerActivity extends Activity {
 	
 	private ListView mFileListView;
-	private ListDirAdapter mFileListAdapter = null;
+	private CommonFileListAdapter mFileListAdapter = null;
 	private Handler mHandler;
 	private FtpMaster mFtpMaster;
 	private Context mCtx;
+	
+	//TODO when we start this activity, we should 
+	//tell whether it's a local or a remote
+	private boolean mIsLocal = false;
 
 
     /** Called when the activity is first created. */
@@ -40,7 +43,7 @@ public class ExplorerActivity extends Activity {
         mFtpMaster = FtpMaster.getFtpMasterInstance();
         mHandler = new ExplorerHandler();      
 
-       
+       mIsLocal = getIntent().getBooleanExtra("isLocal", false);
         
         
     }
@@ -49,48 +52,60 @@ public class ExplorerActivity extends Activity {
     	super.onStart();
     	MyLog.d("Explorer", "LIFECYCLE: onStart");
     	mFtpMaster.setHandler(mHandler);
-    	sendMasterRequest(C.MSG_MASTER_LS,null);
+    	if(mIsLocal){
+    		sendMasterRequest(C.MSG_MASTER_LS_LOCAL,null);
+    	}else{
+    		sendMasterRequest(C.MSG_MASTER_LS,null);
+    	}
+    	
     } 
-    public void onPause(){
-    	super.onPause();
-    	MyLog.d("Explorer", "LIFECYCLE: onPause");
-    }
-    public void onResume(){
-    	super.onResume();
-    	MyLog.d("Explorer", "LIFECYCLE: onResum");
-    }
-    public void onStop(){
-    	super.onStop();
-    	MyLog.d("Explorer", "LIFECYCLE: onStop");
-    }
-    public void onDestroy(){
-    	super.onDestroy();
-    	MyLog.d("Explorer", "LIFECYCLE: onDestroy");
-    }
+
     
     class ExplorerHandler extends Handler{
     	
-        	@SuppressWarnings("unchecked")
-			public void handleMessage(Message msg){
+        	public void handleMessage(Message msg){
         		switch(msg.what){
         		case C.MSG_MASTER_CD_REPLY:
-        			if (msg.arg1 == C.FTP_OP_SUCC) {
-        				sendMasterRequest(C.MSG_MASTER_LS,null);
-        			}
-        			break;
         		case C.MSG_MASTER_BACK_REPLY:
+        		case C.MSG_MASTER_MKDIR_REPLY:
         			if (msg.arg1 == C.FTP_OP_SUCC) {
         				sendMasterRequest(C.MSG_MASTER_LS,null);
         			}
         			break;
+        		case C.MSG_MASTER_CD_LOCAL_REPLY:
+        		case C.MSG_MASTER_BACK_LOCAL_REPLY:
+        		case C.MSG_MASTER_MKDIR_LOCAL_REPLY:
+        			if (msg.arg1 == C.FTP_OP_SUCC) {
+        				sendMasterRequest(C.MSG_MASTER_LS_LOCAL,null);
+        			}
+        			break;
+        		
         		case C.MSG_MASTER_LS_REPLY:
+        		case C.MSG_MASTER_LS_LOCAL_REPLY:
 					if (msg.arg1 == C.FTP_OP_SUCC) {	
 						
-					
-			
-						ArrayList<FTPFile> data = (ArrayList<FTPFile>) msg.obj;
+						CommonFile[] data = (CommonFile[]) msg.obj;
 						if(mFileListAdapter == null){
-							createFileListUI(data);
+							mFileListAdapter = new CommonFileListAdapter(mCtx, data);
+							mFileListView.setAdapter(mFileListAdapter);
+					    	mFileListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+					    	mFileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+								public void onItemClick(AdapterView<?> parent,  View view, int position, long id) {
+									//  Auto-generated method stub
+									CommonFile f = mFileListAdapter.getItem(position);
+									switch(f.getType()){
+									case CommonFile.TYPE_DIRECTORY:
+										if(mIsLocal){
+											sendMasterRequest(C.MSG_MASTER_CD_LOCAL,f.getName());
+										}else{
+											sendMasterRequest(C.MSG_MASTER_CD,f.getName());	
+										}
+										break;
+									}
+									
+								}
+							});
 						}else{
 							mFileListAdapter.setData(data);
 							mFileListView.clearChoices();
@@ -98,6 +113,8 @@ public class ExplorerActivity extends Activity {
 						}
 					}
         			break;
+        			
+        		
         	
         		}
         	}
@@ -111,58 +128,37 @@ public class ExplorerActivity extends Activity {
     }
     
     
-   
-    private void createFileListUI(ArrayList<FTPFile> data){
- 
-    	mFileListAdapter = new ListDirAdapter(this, data);
-    	mFileListView.setAdapter(mFileListAdapter);
-    	mFileListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-    	mFileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-			public void onItemClick(AdapterView<?> parent,  View view, int position, long id) {
-				// TODO Auto-generated method stub
-				FTPFile f = (FTPFile)mFileListAdapter.getItem(position);
-				switch(f.getType()){
-				case FTPFile.DIRECTORY_TYPE:
-					sendMasterRequest(C.MSG_MASTER_CD,f.getName());
-					break;
-				}
-				
-			}
-		});
-
-    }
-    
-    
- 
-    
-    
-    
-   
-    
-    
-    
-    
 
 
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
+		//  Auto-generated method stub
 		MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.explorer_menu, menu);
+		if(mIsLocal){
+		    inflater.inflate(R.menu.explorer_menu_local, menu);		
+		}else{
+		    inflater.inflate(R.menu.explorer_menu, menu);			
+		}
+
 	    return true;
 	}
+
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 
 		case R.id.explorer_back:
-			sendMasterRequest(C.MSG_MASTER_BACK,null);
+			if(mIsLocal){
+				sendMasterRequest(C.MSG_MASTER_BACK_LOCAL,null);
+			}else{
+				sendMasterRequest(C.MSG_MASTER_BACK,null);
+			}
+			
 			return true;	
 		case R.id.explorer_download:
-			ArrayList<FTPFile> msg = mFileListAdapter.getSelection(mFileListView.getCheckedItemIds());
+			CommonFile[] msg = mFileListAdapter.getSelection(mFileListView.getCheckedItemIds());
     		if(msg!=null){
     			mFileListView.clearChoices();
     			mFileListAdapter.notifyDataSetChanged();
@@ -170,15 +166,76 @@ public class ExplorerActivity extends Activity {
     		}	
 			return true;
 		case R.id.explorer_upload:
+			CommonFile[] msg1 = mFileListAdapter.getSelection(mFileListView.getCheckedItemIds());
+    		if(msg1!=null){
+    			mFileListView.clearChoices();
+    			mFileListAdapter.notifyDataSetChanged();
+    			sendMasterRequest(C.MSG_MASTER_FILE_UP, msg1);
+    		}	
+			return true;
 			
+		case R.id.explorer_local:
+			Intent intent1 = new Intent(mCtx, ExplorerActivity.class);
+			intent1.putExtra("isLocal", true);
+			startActivity(intent1);
 			return true;
 
 		case R.id.explorer_tasklist:
 			Intent intent = new Intent(mCtx, TaskListActivity.class);
     		startActivity(intent);
 			return true;
+			
+		case R.id.explorer_new:
+			DialogFragment newFragment = new NewDirInputFragment();
+			newFragment.show(getFragmentManager(), "dialog");	    
+			return true;
+			
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
+	
+	private void mkdir(String name){
+		MyLog.d("Explorer", "making dir "+name);
+		if(mIsLocal){
+			sendMasterRequest(C.MSG_MASTER_MKDIR_LOCAL, name);
+		}else{
+			sendMasterRequest(C.MSG_MASTER_MKDIR, name);
+		}
+	}
+	
+	public  class NewDirInputFragment extends DialogFragment {
+
+		View mLayout;
+	    @Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState) {	        
+	        
+	        AlertDialog.Builder builder  = new AlertDialog.Builder(getActivity());
+	        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(LAYOUT_INFLATER_SERVICE);
+	        mLayout = inflater.inflate(R.layout.new_input,null);
+	        
+	        return  builder.setView(mLayout)
+	        		.setPositiveButton("ok",
+	                    new ConfirmListener()
+	                )
+	                .setNegativeButton("cancel", null)
+	                .create();
+	    }
+	       
+	    class ConfirmListener implements DialogInterface.OnClickListener{
+
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				EditText et = (EditText)mLayout.findViewById(R.id.new_input_text);
+	            ((ExplorerActivity)getActivity()).mkdir(et.getText().toString());
+			}
+			
+		}
+	    
+	}
+	
+	
+	
+	
+	
 }

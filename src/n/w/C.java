@@ -48,6 +48,13 @@ public class C {
 	/* message ArrayList<String> */
 	public static final int MSG_MASTER_FILE_UP 					= MSG_MASTER_FILE_DOWN+1;
 	public static final int MSG_MASTER_GET_TASK_STATUS			= MSG_MASTER_FILE_UP+1;
+	public static final int MSG_MASTER_CD_LOCAL					= MSG_MASTER_GET_TASK_STATUS+1;
+	public static final int MSG_MASTER_BACK_LOCAL				= MSG_MASTER_CD_LOCAL+1;
+	public static final int MSG_MASTER_LS_LOCAL					= MSG_MASTER_BACK_LOCAL+1;
+	public static final int MSG_MASTER_MKDIR					= MSG_MASTER_LS_LOCAL+1;
+	public static final int MSG_MASTER_MKDIR_LOCAL				= MSG_MASTER_MKDIR+1;
+	
+	
 	
 	public static final int MSG_MASTER_CONNECT_REPLY 			= 300;
 	public static final int MSG_MASTER_DISCONNECT_REPLY 		= MSG_MASTER_CONNECT_REPLY+1;
@@ -55,10 +62,18 @@ public class C {
 	public static final int MSG_MASTER_BACK_REPLY 				= MSG_MASTER_CD_REPLY+1;
 	public static final int MSG_MASTER_LS_REPLY 				= MSG_MASTER_BACK_REPLY+1;
 	public static final int MSG_MASTER_FILEOP_REPLY				= MSG_MASTER_LS_REPLY+1;
+	public static final int MSG_MASTER_CD_LOCAL_REPLY			= MSG_MASTER_FILEOP_REPLY+1;
+	public static final int MSG_MASTER_BACK_LOCAL_REPLY			= MSG_MASTER_CD_LOCAL_REPLY+1;
+	public static final int MSG_MASTER_LS_LOCAL_REPLY			= MSG_MASTER_BACK_LOCAL_REPLY+1;	
+	public static final int MSG_MASTER_MKDIR_REPLY				= MSG_MASTER_LS_LOCAL_REPLY+1;
+	public static final int MSG_MASTER_MKDIR_LOCAL_REPLY		= MSG_MASTER_MKDIR_REPLY+1;
 	
 	
 	public static final int MSG_TASKLIST_UPDATE					= 400;
 	public static final int MSG_TASKLIST_TIMER_UPDATE			= MSG_TASKLIST_UPDATE+1;
+
+	
+
 	
 	
 	/* reply status */

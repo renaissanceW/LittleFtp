@@ -198,9 +198,26 @@ public class FtpWorker extends Thread {
 			if (action == C.TASK_ACTION_DOWNLOAD) {
 				input = mFtp.retrieveFileStream(remote);
 				output = new BufferedOutputStream(new FileOutputStream(local));
+				
+				if(input==null){
+					mTask.mStatus = Task.STATUS_FAIL;
+					status = C.FTP_OP_FAIL;
+					MyLog.d("Worker", "END FAIL " + reply);
+					sendReply(C.MSG_WORKER_FILEOP_REPLY, status, mTask);
+					return;
+				}
+				
 			} else {/* DOWNLOAD */
 				output = mFtp.storeFileStream(remote);
 				input = new BufferedInputStream(new FileInputStream(local));
+				
+				if(output==null){
+					mTask.mStatus = Task.STATUS_FAIL;
+					status = C.FTP_OP_FAIL;
+					MyLog.d("Worker", "END FAIL " + reply);
+					sendReply(C.MSG_WORKER_FILEOP_REPLY, status, mTask);
+					return;
+				}
 			}
 			
 			long start_time = System.currentTimeMillis();

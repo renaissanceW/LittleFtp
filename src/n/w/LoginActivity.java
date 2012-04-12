@@ -44,6 +44,7 @@ public class LoginActivity extends Activity {
 			case C.MSG_MASTER_CONNECT_REPLY:
 				if (msg.arg1 == C.FTP_OP_SUCC) {
 					Intent intent = new Intent(mCtx, ExplorerActivity.class);
+					intent.putExtra("isLocal", false);
 					startActivity(intent);
 				} else {
 					Toast.makeText(mCtx, "wrong input", Toast.LENGTH_SHORT).show();
@@ -65,8 +66,8 @@ public class LoginActivity extends Activity {
 		mFtpMaster.setDst(h, u, p,21);
 		
 		//mFtpMaster.setDst("10.0.1.224", "share", "share",21);
-		//mFtpMaster.setDst("10.0.1.230", "Anonymous", "",21);
-		mFtpMaster.setDst("10.0.1.229", "Anonymous", "",21);
+		mFtpMaster.setDst("10.0.1.230", "wn", "wn",21);
+		//mFtpMaster.setDst("10.0.1.229", "Anonymous", "",21);
 		mFtpMaster.getHandler().obtainMessage(C.MSG_MASTER_CONNECT).sendToTarget();
 	}
 

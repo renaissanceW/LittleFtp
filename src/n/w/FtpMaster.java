@@ -1,11 +1,12 @@
 package n.w;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeSet;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -32,10 +33,15 @@ public class FtpMaster extends Thread{
 	private String mUser = "Anonymous";
 	private String mPassword = "";
 	
-	
+	/*ftp*/
+	private FTPClient mFtp;	
 	private String mWorkingDir=".";
-	private String mLocalWorkingDir = "/sdcard/Download";
-	private FTPClient mFtp;
+	/*local fs*/
+	private static final String localRoot = "/sdcard/Download";
+	private File mFileRoot = new File(localRoot);
+	private File mFile = new File(localRoot);
+
+	
 	private Handler mCallerHandler;
 	private Handler mHandler;
 	
@@ -72,10 +78,12 @@ public class FtpMaster extends Thread{
 			case C.MSG_MASTER_DISCONNECT:
 				destroyConnection();
 				break;
+				
+				
 			case C.MSG_MASTER_CD:
-				String folderName = (String) msg.obj;
+				String folderName = (String)msg.obj;
 				chDir(folderName);
-				break;
+				break;			
 			case C.MSG_MASTER_BACK:
 				backDir();
 				break;
@@ -84,14 +92,39 @@ public class FtpMaster extends Thread{
 				break;
 			case C.MSG_MASTER_FILE_DOWN:
 				@SuppressWarnings("unchecked")
-				ArrayList<FTPFile> f = (ArrayList<FTPFile>)msg.obj;
+				CommonFile[] f = (CommonFile[])msg.obj;
 				addDownTask(f);
 				break;
+			
+				
+			case C.MSG_MASTER_CD_LOCAL:
+				String name = (String)msg.obj;
+				chDirLocal(name);
+				break;			
+			case C.MSG_MASTER_BACK_LOCAL:
+				backDirLocal();
+				break;
+			case C.MSG_MASTER_LS_LOCAL:
+				lsDirLocal();
+				break;
+				
+			
+			case C.MSG_MASTER_MKDIR:
+				mkdir((String)msg.obj);
+				break;
+			case C.MSG_MASTER_MKDIR_LOCAL:
+				mkdirLocal((String)msg.obj);
+				break;
+				
+			
 			case C.MSG_MASTER_FILE_UP:
 				@SuppressWarnings("unchecked")
-				ArrayList<String> l = (ArrayList<String>)msg.obj;
+				CommonFile[] l = (CommonFile[])msg.obj;
 				addUpTask(l);
 				break;
+				
+				
+				
 			case C.MSG_WORKER_FILEOP_REPLY:
 				Task t = (Task)msg.obj;
 				mManager.finishTask(t);
@@ -124,11 +157,11 @@ public class FtpMaster extends Thread{
 	 * "accSize" - long
 	 * "speed" - float
 	 */
-	private void addDownTask(ArrayList<FTPFile> files) {
-		for (FTPFile f : files) {
+	private void addDownTask(CommonFile[] files) {
+		for (CommonFile f : files) {
 			Bundle data = new Bundle();
 			String remote = mWorkingDir + "/" + f.getName();
-			String local = mLocalWorkingDir + "/" + f.getName();
+			String local = mFile.getAbsolutePath() + "/" + f.getName();
 			data.putString("remote", remote);
 			data.putString("local", local);
 			data.putInt("action", C.TASK_ACTION_DOWNLOAD);
@@ -145,17 +178,23 @@ public class FtpMaster extends Thread{
 		mManager.schedule();
 	}
 
-	//todo maybe the ArrayList<String> should be changed to ArrayList<File>
-	private void addUpTask(ArrayList<String> files) {
+	private void addUpTask(CommonFile[] files) {
 
-		for (String f : files) {
+		for (CommonFile f : files) {
 			Bundle data = new Bundle();
-			data.putString("remote", mWorkingDir + "/" + f);
-			data.putString("local", mLocalWorkingDir + "/" + f);
+			String remote =  mWorkingDir + "/" + f.getName();
+			String local =  mFile.getAbsolutePath()+"/"+f.getName();
+			data.putString("remote",remote);
+			data.putString("local", local);
 			data.putInt("action", C.TASK_ACTION_UPLOAD);
-			//todo add size!!
+			data.putLong("size", f.getSize());
+			data.putString("host", mHost);
+			data.putInt("port", mPort);
+			data.putString("user", mUser);
+			data.putString("password", mPassword);
+	
 			mManager.addTask(data);
-			
+			MyLog.d("Master", "add up task remote: "+remote+" local: "+local);
 		}
 
 		mManager.schedule();
@@ -230,20 +269,29 @@ public class FtpMaster extends Thread{
 	
 	
 	private void chDir(String folderName) {
+
 		try {
 			/* it's the relative path */
 			mFtp.changeWorkingDirectory(folderName);
-			mWorkingDir = mWorkingDir+"/"+folderName;
+			mWorkingDir = mWorkingDir + "/" + folderName;
 			MyLog.d("Master", "cd success" + folderName);
 			sendReply(C.MSG_MASTER_CD_REPLY, C.FTP_OP_SUCC, null);
 		} catch (IOException e) {
-			
+
 			e.printStackTrace();
 			MyLog.d("Master", "cd fail " + folderName);
 			sendReply(C.MSG_MASTER_CD_REPLY, C.FTP_OP_FAIL, null);
 		}
 
 	}
+	
+	
+	private void chDirLocal(String folderName){
+		mFile = new File(mFile, folderName);
+		MyLog.d("Master", "cdLocal succ:" + folderName);
+		sendReply(C.MSG_MASTER_CD_LOCAL_REPLY, C.FTP_OP_SUCC, null);
+	}
+	
 	
 	
 	private void backDir() {
@@ -263,42 +311,122 @@ public class FtpMaster extends Thread{
 		}
 	}
 	
+	
+	private void backDirLocal(){
+		if(mFile.getAbsolutePath().equals(mFileRoot.getAbsolutePath())){//top
+			MyLog.d("Master", "backDirLocal succ:" + mFile.getAbsolutePath());
+			sendReply(C.MSG_MASTER_BACK_LOCAL_REPLY, C.FTP_OP_FAIL, null);
+			return;
+		}
+		
+		mFile=mFile.getParentFile();
+		MyLog.d("Master", "backDirLocal succ:" + mFile.getAbsolutePath());
+		sendReply(C.MSG_MASTER_BACK_LOCAL_REPLY, C.FTP_OP_SUCC, null);
+	}
+	
+	
 	private void lsDir() {
-		ArrayList<FTPFile> result = new ArrayList<FTPFile>();
 		String names = "";
 		try {
-			ArrayList<FTPFile> folders = new ArrayList<FTPFile>();
-			ArrayList<FTPFile> files = new ArrayList<FTPFile>();
 			
+			FTPFile[] result = mFtp.listFiles();
 			/*seperate folders with files*/
-			for (FTPFile f : mFtp.listFiles()) {
-				if (f != null) {
-					switch(f.getType()){
-					case FTPFile.DIRECTORY_TYPE:
-						folders.add(f);
-						break;
-					case FTPFile.FILE_TYPE:
-						files.add(f);
-						break;
+			Arrays.sort(result, new Comparator<FTPFile>(){
+				public int compare(FTPFile lhs, FTPFile rhs) {
+					if(lhs.getType() == rhs.getType()){
+						return lhs.getName().compareTo(rhs.getName());
+					}else{
+						return lhs.getType() == FTPFile.DIRECTORY_TYPE? -1 : 1;
 					}
 				}
 				
+			});		
+			
+			for (FTPFile f : result){
 				names += f.getName()+" ";
 			}
 			
-			result.addAll(folders);
-			result.addAll(files);
-			MyLog.d("Master", "ls " + mWorkingDir + " success!");
-			MyLog.d("Master", "ls content: "+names);
-			sendReply(C.MSG_MASTER_LS_REPLY, C.FTP_OP_SUCC, result);
+			CommonFile[] rlt = new CommonFile[result.length];
+			for(int i=0;i<result.length;i++){
+				rlt[i] = new CommonFile(result[i]);
+			}
+			
+			MyLog.d("Master", "ls SUCC" + mWorkingDir + " content: "+names);
+			sendReply(C.MSG_MASTER_LS_REPLY, C.FTP_OP_SUCC, rlt);
 		} catch (IOException e) {
 			
 			e.printStackTrace();
 			MyLog.d("Master", "ls " + mWorkingDir + " failed!");
-			sendReply(C.MSG_MASTER_LS_REPLY, C.FTP_OP_FAIL, result);
+			sendReply(C.MSG_MASTER_LS_REPLY, C.FTP_OP_FAIL, null);
 		}
 
 	}
+	
+	
+	
+	private void lsDirLocal(){
+		File[] result = mFile.listFiles();
+		Arrays.sort(result, new Comparator<File>(){
+
+			public int compare(File lhs, File rhs) {
+				// TODO Auto-generated method stub
+				if(lhs.isDirectory()&&rhs.isDirectory() ||
+					lhs.isFile()&&rhs.isFile()){
+					return lhs.getName().compareTo(rhs.getName());
+				}else{
+					return lhs.isDirectory()? -1 : 1;
+				}
+			}
+			
+		});
+		
+		
+		String logStr = "";
+		for(File f:result){
+			logStr += " "+ f.getName();
+		}
+		
+		CommonFile[] rlt = new CommonFile[result.length];
+		for(int i=0;i<result.length;i++){
+			rlt[i] = new CommonFile(result[i]);
+		}
+		
+		
+		MyLog.d("Master", "lsDirLocal SUCC "+mFile.getAbsolutePath()+" content:"+logStr);
+		sendReply(C.MSG_MASTER_LS_LOCAL_REPLY, C.FTP_OP_SUCC, rlt);
+	}
+	
+	
+	
+	
+	
+	
+	private void mkdir(String name){
+		
+		try {
+			int replycode = mFtp.mkd(name);
+			MyLog.d("Master", "mkdir replyCode: "+replycode+" "+mWorkingDir+"/"+name);
+			sendReply(C.MSG_MASTER_MKDIR_REPLY, 
+					replycode == 257?C.FTP_OP_SUCC:C.FTP_OP_FAIL, null);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void mkdirLocal(String name){
+		File f = new File(mFile.getAbsolutePath()+"/"+name);
+		boolean result = f.mkdir();	
+		MyLog.d("Master", "mkdirLocal "+result+" "+f.getAbsolutePath());
+		sendReply(C.MSG_MASTER_MKDIR_LOCAL_REPLY, result?C.FTP_OP_SUCC:C.FTP_OP_FAIL, null);
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	

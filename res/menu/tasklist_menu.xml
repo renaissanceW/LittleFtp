@@ -6,7 +6,8 @@
           android:title="@string/tasklist_back"
           android:showAsAction="ifRoom|withText"
           />   
-          
+    
+  	
     <item android:id="@+id/tasklist_delete"
           android:icon="@drawable/ic_menu_delete"
           android:title="@string/tasklist_delete"

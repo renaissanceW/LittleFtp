@@ -37,7 +37,7 @@ public class CommonFileListAdapter extends BaseAdapter {
 		mList  = f;
 	}
 	
-	
+
 	/*the caller ensure the selection is not null*/
 	public CommonFile[] getSelection(long[] selection){
 		
@@ -134,6 +134,14 @@ class CommonFile{
 		mIsFile = false;
 		mFile = null;
 		mFtpFile = f;
+	}
+	
+	public File getFile(){
+		return mFile;
+	}
+	
+	public FTPFile getFTPFile(){
+		return mFtpFile;
 	}
 	
 	public boolean IsLocalFile(){

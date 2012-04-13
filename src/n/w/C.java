@@ -53,6 +53,8 @@ public class C {
 	public static final int MSG_MASTER_LS_LOCAL					= MSG_MASTER_BACK_LOCAL+1;
 	public static final int MSG_MASTER_MKDIR					= MSG_MASTER_LS_LOCAL+1;
 	public static final int MSG_MASTER_MKDIR_LOCAL				= MSG_MASTER_MKDIR+1;
+	public static final int MSG_MASTER_DELETE					= MSG_MASTER_MKDIR_LOCAL+1;
+	public static final int MSG_MASTER_DELETE_LOCAL				= MSG_MASTER_DELETE+1;
 	
 	
 	
@@ -67,7 +69,8 @@ public class C {
 	public static final int MSG_MASTER_LS_LOCAL_REPLY			= MSG_MASTER_BACK_LOCAL_REPLY+1;	
 	public static final int MSG_MASTER_MKDIR_REPLY				= MSG_MASTER_LS_LOCAL_REPLY+1;
 	public static final int MSG_MASTER_MKDIR_LOCAL_REPLY		= MSG_MASTER_MKDIR_REPLY+1;
-	
+	public static final int MSG_MASTER_DELETE_REPLY				= MSG_MASTER_MKDIR_LOCAL_REPLY+1;
+	public static final int MSG_MASTER_DELETE_LOCAL_REPLY		= MSG_MASTER_DELETE_REPLY+1;
 	
 	public static final int MSG_TASKLIST_UPDATE					= 400;
 	public static final int MSG_TASKLIST_TIMER_UPDATE			= MSG_TASKLIST_UPDATE+1;

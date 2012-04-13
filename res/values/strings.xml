@@ -24,6 +24,15 @@
 	<string name="tasklist_delete">Delete</string>	
 	<string name="tasklist_status_transfer">Transferring</string>
 	<string name="tasklist_status_wait">Waiting</string>
+	
+	<string name="ctx_menu_mkdir">New Directory</string>
+	<string name="ctx_menu_delete">Delete</string>
+	<string name="ctx_menu_upload">Upload</string>
+	<string name="ctx_menu_download">Download</string>
+	
+	<string name="delete_confirm">Are you sure to delete this item?</string>
+	<string name="mkdir_title">Please Enter the Directory Name</string>
+	<string name="rename_title">Please Enter the new Name</string>
   
 
 </resources>

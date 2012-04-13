@@ -116,6 +116,12 @@ public class FtpMaster extends Thread{
 				mkdirLocal((String)msg.obj);
 				break;
 				
+			case C.MSG_MASTER_DELETE:
+				delete((CommonFile)msg.obj);
+				break;
+			case C.MSG_MASTER_DELETE_LOCAL:
+				deleteLocal((CommonFile)msg.obj);
+				break;	
 			
 			case C.MSG_MASTER_FILE_UP:
 				@SuppressWarnings("unchecked")
@@ -404,10 +410,9 @@ public class FtpMaster extends Thread{
 	private void mkdir(String name){
 		
 		try {
-			int replycode = mFtp.mkd(name);
-			MyLog.d("Master", "mkdir replyCode: "+replycode+" "+mWorkingDir+"/"+name);
-			sendReply(C.MSG_MASTER_MKDIR_REPLY, 
-					replycode == 257?C.FTP_OP_SUCC:C.FTP_OP_FAIL, null);
+			boolean result = mFtp.makeDirectory(name);
+			MyLog.d("Master", "mkdir : "+result+" "+mWorkingDir+"/"+name);
+			sendReply(C.MSG_MASTER_MKDIR_REPLY, result?C.FTP_OP_SUCC:C.FTP_OP_FAIL, null);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -424,7 +429,80 @@ public class FtpMaster extends Thread{
 	
 	
 	
+	private void delete(CommonFile file) {
+
+		FTPFile f = file.getFTPFile();
+		try {
+			boolean rlt = innerDeleteRemote(f);
+			MyLog.d("Master",
+					"delete : " + rlt + " " + mWorkingDir + "/" + f.getName());
+			sendReply(C.MSG_MASTER_DELETE_REPLY, rlt ? C.FTP_OP_SUCC
+					: C.FTP_OP_FAIL, null);
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
+	private boolean innerDeleteRemote(FTPFile f) throws IOException{
+		
+		if(f.getType() ==  FTPFile.FILE_TYPE){
+			return mFtp.deleteFile(f.getName());
+		}else if(f.getType() == FTPFile.DIRECTORY_TYPE){
+			boolean flag = true;
+			mFtp.changeWorkingDirectory(f.getName());
+			for(FTPFile child : mFtp.listFiles() ){
+				if(!innerDeleteRemote(child)){
+					flag = false;
+					break;
+				}
+			}
+			mFtp.changeToParentDirectory();
+			if(flag && mFtp.removeDirectory(f.getName())){
+				return true;
+			}			
+			
+		}
+		
+		return false;
+	}
+	
+	
+	
+	
+	private void deleteLocal(CommonFile file) {
+		File f = file.getFile();
+
+		boolean result = innerDeleteLocal(f);
+		MyLog.d("Master", "deleteLocal " + result + " " + f.getAbsolutePath());
+		sendReply(C.MSG_MASTER_DELETE_LOCAL_REPLY, result ? C.FTP_OP_SUCC
+				: C.FTP_OP_FAIL, null);
+
+	}
+	
+	/*recursively delete*/
+	private boolean innerDeleteLocal(File f){
+		
+		if(f.isFile()){
+			return f.delete();
+		}else if(f.isDirectory()){
+			File[] childs = f.listFiles();
+			boolean flag = true;
+			for(File c : childs){
+				if(!innerDeleteLocal(c)){
+					flag = false;
+					break;
+				}
+			}
+			
+			if(flag && f.delete()){
+				return true;
+			}
+		}	
+		
+		return false;
+	}
 	
 	
 	

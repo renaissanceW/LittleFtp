@@ -14,7 +14,7 @@ import android.os.Handler;
 
 public class TaskManager {
 
-	private static final int WORKER_COUNT	= 3;
+	private static final int WORKER_COUNT	= 5;
 	
 	private Handler mHandler;
 	

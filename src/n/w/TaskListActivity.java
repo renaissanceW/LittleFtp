@@ -7,11 +7,11 @@ import java.util.TreeSet;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,6 +36,10 @@ public class TaskListActivity extends Activity {
 	private LayoutInflater mInflater;
 	
 	private Timer mTimer;
+	
+	/*UI RESOURCE*/
+	private Drawable mDrawDownload;
+	private Drawable mDrawUpload;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,10 +52,10 @@ public class TaskListActivity extends Activity {
 		
 		mListAdapter = new TaskListAdapter(this,null);
 		mListView.setAdapter(mListAdapter);
-		//mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		mListView.setOnItemClickListener(new TaskItemClickListener());
 		
-		
+		mDrawDownload = getResources().getDrawable(R.drawable.download);
+		mDrawUpload = getResources().getDrawable(R.drawable.upload);
 		
 	}
 	public void onStart() {
@@ -102,6 +106,9 @@ public class TaskListActivity extends Activity {
 	
 	class TaskListAdapter extends BaseAdapter {
 		public TreeSet<Integer> mSelection = new TreeSet<Integer>();
+		
+		
+		
 		
 		public boolean select(int i){
 			if(mSelection.contains(i)){
@@ -157,69 +164,56 @@ public class TaskListActivity extends Activity {
 			return true;
 		}
 		
+		
+		
 		public View getView(int position, View convertView, ViewGroup parent) {
+			ViewHolder holder;
 			if(convertView == null){
-				convertView = mInflater.inflate(R.layout.task_item_new, null);
+				convertView = mInflater.inflate(R.layout.task_item_new, null);		
+				holder = new ViewHolder();			
+				holder.type = (ImageView)convertView.findViewById(R.id.task_type);
+				holder.name = (TextView)convertView.findViewById(R.id.task_name);
+				holder.progress = (TextView)convertView.findViewById(R.id.task_progress);
+				holder.speed = (TextView)convertView.findViewById(R.id.task_speed);
+				holder.status = (TextView)convertView.findViewById(R.id.task_status);
+				holder.size = (TextView)convertView.findViewById(R.id.task_size);	
+				holder.progress_bar = (ProgressBar)convertView.findViewById(R.id.task_progress_bar);
+				holder.cb = (CheckBox)convertView.findViewById(R.id.task_check_box);
+				convertView.setTag(holder);
+			}else{
+				holder = (ViewHolder)convertView.getTag();
 			}
 			
 			Task task = mTasks.get(position);
-			Bundle data = mTasks.get(position).mData;
-			ImageView type = (ImageView)convertView.findViewById(R.id.task_type);
-			TextView name = (TextView)convertView.findViewById(R.id.task_name);
-			TextView progress = (TextView)convertView.findViewById(R.id.task_progress);
-			TextView speed = (TextView)convertView.findViewById(R.id.task_speed);
-			TextView status = (TextView)convertView.findViewById(R.id.task_status);
-			TextView size = (TextView)convertView.findViewById(R.id.task_size);
+			Bundle data = mTasks.get(position).mData;	
 			
-			ProgressBar progress_bar = (ProgressBar)convertView.findViewById(R.id.task_progress_bar);
-			
-			/*check box*/
-			CheckBox cb = (CheckBox)convertView.findViewById(R.id.task_check_box);
-			if(mSelection.contains(position)){
-				cb.setChecked(true);
-			}else{
-				cb.setChecked(false);
-			}
+			/*checkbox*/
+			holder.cb.setChecked(mSelection.contains(position));
 			
 			/*type & name*/
 			if(data.getInt("action")==C.TASK_ACTION_DOWNLOAD){
-				type.setImageResource(R.drawable.download);
-				String remote = data.getString("remote");			
-				String fileName = remote.substring(remote.lastIndexOf("/")+1);
-				name.setText(fileName);
+				holder.type.setImageDrawable(mDrawDownload);
+				holder.name.setText(data.getString("remoteName"));
 			}else{
-				type.setImageResource(R.drawable.upload);
-				String local = data.getString("local");	
-				String fileName = local.substring(local.lastIndexOf("/")+1);
-				name.setText(fileName);
+				holder.type.setImageDrawable(mDrawUpload);
+				holder.name.setText(data.getString("localName"));
 			}
 
 			/*progress*/
-			float fP =(float)((int)(10*data.getFloat("progress")))/10;
-			progress.setText(""+fP+"%");
-			progress_bar.setProgress((int)fP);
+			holder.progress.setText(data.getString("progress"));
+			holder.progress_bar.setProgress(data.getInt("progressInt"));
 			
 			/*speed*/
-			float fS =(float)((int)(10*data.getFloat("speed")))/10;
-			speed.setText(fS+"KB/s");
+			holder.speed.setText(data.getString("speed"));
 			
 			/*status*/
 			if(task.mStatus==Task.STATUS_WAIT){
-				status.setText(R.string.tasklist_status_wait);
+				holder.status.setText(R.string.tasklist_status_wait);
 			}else{
-				status.setText(R.string.tasklist_status_transfer);
+				holder.status.setText(R.string.tasklist_status_transfer);
 			}
-			/*size*/
-			long totalSize = data.getLong("size");
-			long accSize = data.getLong("accSize");
-			long k = totalSize/1024;
-			long m = k/1024;
-		
-			String s = (m!=0)? ""+accSize/(1024*1024)+"MB/"+m+"MB":
-				(k!=0)?""+accSize/1024+"KB/"+k+"KB":
-					""+accSize+"/"+totalSize;
-			
-			size.setText(s);
+			/*size*/	
+			holder.size.setText(data.getString("accSize"));
 			
 	
 			return convertView;
@@ -228,7 +222,16 @@ public class TaskListActivity extends Activity {
 
 	}
 
-
+	static class ViewHolder{
+		ImageView type;
+		TextView name;
+		TextView progress;
+		TextView speed;
+		TextView status;
+		TextView size;
+		ProgressBar progress_bar;
+		CheckBox cb;
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {

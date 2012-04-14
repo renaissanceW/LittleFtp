@@ -91,11 +91,12 @@ public class FtpMaster extends Thread{
 				lsDir();
 				break;
 			case C.MSG_MASTER_FILE_DOWN:
-				@SuppressWarnings("unchecked")
-				CommonFile[] f = (CommonFile[])msg.obj;
-				addDownTask(f);
+				addTask((CommonFile)msg.obj,C.TASK_ACTION_DOWNLOAD);
 				break;
-			
+			case C.MSG_MASTER_FILE_UP:
+				addTask((CommonFile) msg.obj,C.TASK_ACTION_UPLOAD);
+				break;
+					
 				
 			case C.MSG_MASTER_CD_LOCAL:
 				String name = (String)msg.obj;
@@ -123,12 +124,7 @@ public class FtpMaster extends Thread{
 				deleteLocal((CommonFile)msg.obj);
 				break;	
 			
-			case C.MSG_MASTER_FILE_UP:
-				@SuppressWarnings("unchecked")
-				CommonFile[] l = (CommonFile[])msg.obj;
-				addUpTask(l);
-				break;
-				
+
 				
 				
 			case C.MSG_WORKER_FILEOP_REPLY:
@@ -159,54 +155,32 @@ public class FtpMaster extends Thread{
 	 * "user" - String
 	 * "password" - String
 	 * 
-	 * "progress" - float
-	 * "accSize" - long
-	 * "speed" - float
+	 * for UI
+	 * "remoteName" - String
+	 * "localName" - String
+	 * "progress" - String
+	 * "accSize" - String
+	 * "speed" - String
 	 */
-	private void addDownTask(CommonFile[] files) {
-		for (CommonFile f : files) {
-			Bundle data = new Bundle();
+	private void addTask(CommonFile f, int action) {
+
 			String remote = mWorkingDir + "/" + f.getName();
 			String local = mFile.getAbsolutePath() + "/" + f.getName();
-			data.putString("remote", remote);
-			data.putString("local", local);
-			data.putInt("action", C.TASK_ACTION_DOWNLOAD);
-			data.putLong("size", f.getSize());
-			data.putString("host", mHost);
-			data.putInt("port", mPort);
-			data.putString("user", mUser);
-			data.putString("password", mPassword);
+			
+			Bundle data = C.genTaskBundle(remote, local, 
+					action, f.getSize(), 
+					mHost, mPort, mUser, mPassword, 
+					f.getType()==CommonFile.TYPE_DIRECTORY);
+			
 			mManager.addTask(data);
 			MyLog.d("Master", "add download task remote: "+remote+" local: "+local);
 			
-		}
+		
 
 		mManager.schedule();
 	}
 
-	private void addUpTask(CommonFile[] files) {
 
-		for (CommonFile f : files) {
-			Bundle data = new Bundle();
-			String remote =  mWorkingDir + "/" + f.getName();
-			String local =  mFile.getAbsolutePath()+"/"+f.getName();
-			data.putString("remote",remote);
-			data.putString("local", local);
-			data.putInt("action", C.TASK_ACTION_UPLOAD);
-			data.putLong("size", f.getSize());
-			data.putString("host", mHost);
-			data.putInt("port", mPort);
-			data.putString("user", mUser);
-			data.putString("password", mPassword);
-	
-			mManager.addTask(data);
-			MyLog.d("Master", "add up task remote: "+remote+" local: "+local);
-		}
-
-		mManager.schedule();
-	}
-	
-	
 	
 	private void establishConnection() {
 		try {

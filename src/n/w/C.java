@@ -1,5 +1,6 @@
 package n.w;
 
+import android.os.Bundle;
 import android.os.Handler;
 
 public class C {
@@ -17,19 +18,7 @@ public class C {
 	/*worker*/
 	public static final int MSG_WORKER_CONNECT 					= 0;
 	public static final int MSG_WORKER_DISCONNECT 				= MSG_WORKER_CONNECT+1;
-	/* message is a Bundle
-	 * "remote" - String 
-	 * "local" - String
-	 * "action" - int
-	 * "size" - long
-	 * "port" - String
-	 * "user" - String
-	 * "password" - int
-	 * 
-	 * "progress" - float
-	 * "accSize" - long
-	 * "speed" - float
-	 */
+	
 	public static final int MSG_WORKER_FILEOP				 	= MSG_WORKER_DISCONNECT+1;
 	
 	
@@ -106,4 +95,62 @@ public class C {
 	public static void sendMessage(Handler h, int what, int arg1, Object obj){
 		h.obtainMessage(what, arg1, 0, obj).sendToTarget();
 	}
+	
+	
+	/* message is a Bundle
+	 * "remote" - String 
+	 * "local" - String
+	 * "action" - int
+	 * "size" - long
+	 * "port" - String
+	 * "user" - String
+	 * "password" - int
+	 * "isDir" - boolean
+	 * 
+	 * for UI
+	 * "remoteName" - String
+	 * "localName" -String
+	 * "progress" - String
+	 * "progressInt" - int
+	 * "accSize" - String
+	 * "speed" - String
+	 */
+	public static Bundle genTaskBundle(String remote, String local, int action, long size,
+			String host, int port, String user, String password, boolean isDir){
+		Bundle data = new Bundle();
+		
+		data.putString("remote", remote);
+		data.putString("local", local);
+		data.putInt("action", action);
+		data.putLong("size", size);
+		data.putString("host", host);
+		data.putInt("port", port);
+		data.putString("user", user);
+		data.putString("password", password);
+		data.putBoolean("isDir", isDir);
+		
+		data.putString("remoteName", remote.substring(remote.lastIndexOf('/')+1));
+		data.putString("localName", local.substring(local.lastIndexOf('/')+1));
+		
+		data.putString("progress", "0.0%");
+		data.putInt("progressInt", 0);
+		data.putString("accSize", getSizeStr(size, 0));
+		data.putString("speed", "0KB/s");
+		return data;
+	}
+	
+	public static String getSizeStr(long totalSize, long accSize){
+		long k = totalSize/1024;
+		long m = k/1024;
+	
+		String s = (m!=0)? ""+accSize/(1024*1024)+"MB/"+m+"MB":
+			(k!=0)?""+accSize/1024+"KB/"+k+"KB":
+				""+accSize+"/"+totalSize+"B";
+		
+		return s;
+	}
+	
+	
+	
+	
 }

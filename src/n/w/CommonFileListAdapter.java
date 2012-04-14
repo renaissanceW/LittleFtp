@@ -1,13 +1,13 @@
 package n.w;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.net.ftp.FTPFile;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,12 +22,16 @@ public class CommonFileListAdapter extends BaseAdapter {
 	
 	private CommonFile[] mList;
 
-	
+	private Drawable mDrawFile;
+	private Drawable mDrawDir;
 	
 	public CommonFileListAdapter(Context ctx, CommonFile[] f){
 		mContext = ctx;
 		mInflater = LayoutInflater.from(mContext);
 		mList = f;
+		
+		mDrawFile = ctx.getResources().getDrawable(R.drawable.file);
+		mDrawDir = ctx.getResources().getDrawable(R.drawable.folder);
 	}
 	
 	
@@ -72,37 +76,44 @@ public class CommonFileListAdapter extends BaseAdapter {
 		return getCount() == 0;
 	}
 	
+	static class CommonFileViewHolder{
+		TextView name;
+		ImageView type;
+		TextView size;
+		TextView time;
+	}
 
 
 	public View getView(int position, View convertView, ViewGroup parent) {
 		// TODO Auto-generated method stub
+		CommonFileViewHolder holder;
 		if (convertView == null) {
+			holder = new CommonFileViewHolder();
 			convertView = mInflater.inflate(R.layout.file_item_new, null);
+			holder.name = (TextView) convertView.findViewById(R.id.file_name);
+			holder.type = (ImageView) convertView.findViewById(R.id.file_type);
+			holder.size = (TextView) convertView.findViewById(R.id.file_size);
+			holder.time = (TextView) convertView.findViewById(R.id.file_time);
+			convertView.setTag(holder);
+		}else{
+			holder = (CommonFileViewHolder)convertView.getTag();
 		}
 
 		CommonFile f = getItem(position);
 		
-		TextView name = (TextView) convertView.findViewById(R.id.file_name);
-		ImageView type = (ImageView) convertView.findViewById(R.id.file_type);
-		TextView size = (TextView) convertView.findViewById(R.id.file_size);
-		TextView time = (TextView) convertView.findViewById(R.id.file_time);
+		
 
-		name.setText(f.getName());
+		holder.name.setText(f.getName());
 
 		if (f.getType() == CommonFile.TYPE_FILE) {
-			type.setImageResource(R.drawable.file);
+			holder.type.setImageDrawable(mDrawFile);
 		} else if (f.getType() == CommonFile.TYPE_DIRECTORY) {
-			type.setImageResource(R.drawable.folder);
+			holder.type.setImageDrawable(mDrawDir);
 		}
 
-		long s = f.getSize();
-		long k = s / 1024;
-		long m = k / 1024;
-		String content = (m != 0) ? String.valueOf(m) + "MB"
-				: (k != 0) ? String.valueOf(k) + "KB" : "1KB";
-		size.setText(content);
-		
-		time.setText(f.getTimeStr());		
+
+		holder.size.setText(f.getSizeStr());	
+		holder.time.setText(f.getTimeStr());		
 
 		return convertView;
 	}
@@ -162,6 +173,16 @@ class CommonFile{
 	
 	long getSize(){
 		return mIsFile? mFile.length() : mFtpFile.getSize();
+	}
+	
+	String getSizeStr(){
+		long s = getSize();
+		long k = s / 1024;
+		long m = k / 1024;
+		String content = (m != 0) ? String.valueOf(m) + "MB"
+				: (k != 0) ? String.valueOf(k) + "KB" : "1KB";
+		
+		return content;
 	}
 	
 	/* YEAR-MONTH-DAY_OF_MONTH */

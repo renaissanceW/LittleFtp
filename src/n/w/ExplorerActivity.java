@@ -164,23 +164,7 @@ public class ExplorerActivity extends Activity {
 			}
 			
 			return true;	
-		case R.id.explorer_download:
-			CommonFile[] msg = mFileListAdapter.getSelection(mFileListView.getCheckedItemIds());
-    		if(msg!=null){
-    			mFileListView.clearChoices();
-    			mFileListAdapter.notifyDataSetChanged();
-    			sendMasterRequest(C.MSG_MASTER_FILE_DOWN, msg);
-    		}	
-			return true;
-		case R.id.explorer_upload:
-			CommonFile[] msg1 = mFileListAdapter.getSelection(mFileListView.getCheckedItemIds());
-    		if(msg1!=null){
-    			mFileListView.clearChoices();
-    			mFileListAdapter.notifyDataSetChanged();
-    			sendMasterRequest(C.MSG_MASTER_FILE_UP, msg1);
-    		}	
-			return true;
-			
+		
 		case R.id.explorer_local:
 			Intent intent1 = new Intent(mCtx, ExplorerActivity.class);
 			intent1.putExtra("isLocal", true);
@@ -202,16 +186,7 @@ public class ExplorerActivity extends Activity {
 		}
 	}
 	
-//	private void mkdir(String name){
-//		MyLog.d("Explorer", "making dir "+name);
-//		if(mIsLocal){
-//			sendMasterRequest(C.MSG_MASTER_MKDIR_LOCAL, name);
-//		}else{
-//			sendMasterRequest(C.MSG_MASTER_MKDIR, name);
-//		}
-//	}
-	
-	
+
 	
 	
 	
@@ -246,9 +221,12 @@ public class ExplorerActivity extends Activity {
 			confirmFragment.show(getFragmentManager(), "delete");
 			return true;
 		case R.id.remote_ctx_menu_download:
+			sendMasterRequest(C.MSG_MASTER_FILE_DOWN, f);
 			return true;
 
 		case R.id.local_ctx_menu_upload:
+			sendMasterRequest(C.MSG_MASTER_FILE_UP, f);
+			
 			return true;
 		default:
 			return super.onContextItemSelected(item);

@@ -2,19 +2,23 @@ package n.w;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -32,18 +36,26 @@ public class FtpWorker extends Thread {
 	private int mId;
 	private Timer mTimer;
 	
+	private TaskManager mManager;
 	
 	private Task mTask;
 	private boolean mCanceled = false;
 	
+	static final int BUFFER_LEN = 64*1024;
+	static final int STATISTIC_COUNT = 25;
+	byte[] mBuffer = new byte[BUFFER_LEN];
+	
+	
+	private static DecimalFormat mDf = new DecimalFormat("0.0");
 	
 	public void cancelTask(){
 		mCanceled = true;
 	}
 
-	public FtpWorker(int id, Handler h){
+	public FtpWorker(int id, Handler h, TaskManager m){
 		mId = id;
 		mCallerHandler = h;		
+		mManager = m;
 		start();
 	}
 	
@@ -65,6 +77,8 @@ public class FtpWorker extends Thread {
 				mTask = (Task)msg.obj;
 				if(!Connect()){
 					sendReply(C.MSG_WORKER_FILEOP_REPLY, C.FTP_OP_FAIL, mTask);
+				}else if(mTask.mData.getBoolean("isDir")){
+					dirOp();
 				}else{
 					fileOp();
 				}
@@ -169,10 +183,72 @@ public class FtpWorker extends Thread {
 	
 	
 	
+	void dirOp(){
+		String remote = mTask.mData.getString("remote");
+		String local = mTask.mData.getString("local");
+		int action = mTask.mData.getInt("action");
+		long totalSize = mTask.mData.getLong("size");
+		mTask.mStatus = Task.STATUS_ING;
+		try{
+			if(action == C.TASK_ACTION_DOWNLOAD){
+				File parent = new File(local);
+				parent.mkdir();
+				for(FTPFile c : mFtp.listFiles(remote)){			
+					String chRemote = remote + "/" + c.getName();
+					String chLocal = local + "/" + c.getName();		
+					
+					Bundle data = C.genTaskBundle(chRemote, chLocal, 
+							C.TASK_ACTION_DOWNLOAD, c.getSize(),
+							mHost, mPort, mUser, mPassword, 
+							c.isDirectory());
+					
+					MyLog.d("Worker", "add download task remote: "+chRemote+" local: "+chLocal);
+					mManager.addTask(data);
+				}
+			
+				
+			}else if(action == C.TASK_ACTION_UPLOAD){
+				boolean rlt = mFtp.makeDirectory(remote);
+				File parent = new File(local);
+				for(File c : parent.listFiles()){
+					String chRemote = remote + "/" + c.getName();
+					String chLocal = local + "/" + c.getName();
+					
+					Bundle data = C.genTaskBundle(chRemote, chLocal, 
+							C.TASK_ACTION_UPLOAD, c.length(),
+							mHost, mPort, mUser, mPassword, 
+							c.isDirectory());
+				
+					MyLog.d("Worker", "add download task remote: "+chRemote+" local: "+chLocal);
+					mManager.addTask(data);
+				}
+			}
+			
+			/*fake*/
+			mTask.mData.putString("accSize", C.getSizeStr(totalSize, totalSize));
+			mTask.mData.putString("progress", "100%");
+			mTask.mData.putInt("progressInt", 100);
+			mTask.mData.putString("speed", "1KB/s");
+			mTask.mStatus = Task.STATUS_DONE;
+
+			
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+		
+		
+		//MyLog.d("Worker", "END " + ((status == C.FTP_OP_SUCC)? "SUCC " : "FAIL ") + reply);
+		sendReply(C.MSG_WORKER_FILEOP_REPLY, C.FTP_OP_SUCC, mTask);
+		
+	}
 	
 	
-	static final int BUFFER_LEN = 128*1024;
-	static final int STATISTIC_COUNT = 25;
+	
+	
+	
+
+	
+	
 	void fileOp(){
 		String remote = mTask.mData.getString("remote");
 		String local = mTask.mData.getString("local");
@@ -180,7 +256,7 @@ public class FtpWorker extends Thread {
 		long totalSize = mTask.mData.getLong("size");
 			
 		int len;
-		byte[] buffer = new byte[BUFFER_LEN];
+		
 		long accSize = 0;
 		float progress = 0;
 		float speed = 0;
@@ -202,7 +278,7 @@ public class FtpWorker extends Thread {
 				if(input==null){
 					mTask.mStatus = Task.STATUS_FAIL;
 					status = C.FTP_OP_FAIL;
-					MyLog.d("Worker", "END FAIL " + reply);
+					MyLog.d("Worker", "END FAIL1 replycode: "+mFtp.getReplyCode()+" " + reply);
 					sendReply(C.MSG_WORKER_FILEOP_REPLY, status, mTask);
 					return;
 				}
@@ -214,7 +290,7 @@ public class FtpWorker extends Thread {
 				if(output==null){
 					mTask.mStatus = Task.STATUS_FAIL;
 					status = C.FTP_OP_FAIL;
-					MyLog.d("Worker", "END FAIL " + reply);
+					MyLog.d("Worker", "END FAIL1 replycode: "+mFtp.getReplyCode()+" "+ reply);
 					sendReply(C.MSG_WORKER_FILEOP_REPLY, status, mTask);
 					return;
 				}
@@ -224,19 +300,24 @@ public class FtpWorker extends Thread {
 			long end_time;
 			startSpeed();
 
-			while ( !mCanceled && (len = input.read(buffer)) != -1) {	
-				output.write(buffer, 0, len);
+			while ( !mCanceled && (len = input.read(mBuffer)) != -1) {	
+				output.write(mBuffer, 0, len);
 				accSize += len;
 				
 				end_time = System.currentTimeMillis();
 				putSpeed(end_time-start_time, len);
 				start_time = end_time;
 				
-				mTask.mData.putLong("accSize", accSize);
-				progress = ((float) 100 * accSize / totalSize);
-				mTask.mData.putFloat("progress", progress);
+				
+				
+				mTask.mData.putString("accSize", C.getSizeStr(totalSize, accSize));
+				
+				progress = (float)100*accSize/totalSize;
+				
+				mTask.mData.putInt("progressInt", (int)progress);
+				mTask.mData.putString("progress", mDf.format(progress)+"%");
 				speed = getSpeed();
-				mTask.mData.putFloat("speed", speed);			
+				mTask.mData.putString("speed", mDf.format(speed)+"KB/s");			
 		
 				
 			}
@@ -267,7 +348,7 @@ public class FtpWorker extends Thread {
 			mCanceled = false;	
 		}
 		
-		MyLog.d("Worker", "END " + ((status == C.FTP_OP_SUCC)? "SUCC " : "FAIL ") + reply);
+		MyLog.d("Worker", "END " + ((status == C.FTP_OP_SUCC)? "SUCC " : "FAIL2 ") + reply);
 		sendReply(C.MSG_WORKER_FILEOP_REPLY, status, mTask);		
 		
 	}

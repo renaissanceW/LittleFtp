@@ -13,12 +13,6 @@
           android:showAsAction="ifRoom|withText"
           /> 
           
-      	<item android:id="@+id/explorer_download"
-	          android:icon="@drawable/ic_menu_download"
-	          android:title="@string/explorer_download"
-	          android:showAsAction="ifRoom|withText"
-	          />  
-	          	   
     	
 	 	<item android:id="@+id/explorer_local"
 	          android:icon="@drawable/ic_menu_local"

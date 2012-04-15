@@ -251,11 +251,10 @@ public class ExplorerActivity extends Activity {
 		        		.setPositiveButton("ok",
 		                    new DialogInterface.OnClickListener(){
 			        			public void onClick(DialogInterface dialog, int which) {
-			    		            if(mIsLocal){	            	
-			    		    			sendMasterRequest(C.MSG_MASTER_DELETE_LOCAL, mF);
-			    		    		}else{
-			    		    			sendMasterRequest(C.MSG_MASTER_DELETE, mF);
-			    		    		}
+			        				
+			        				sendMasterRequest(mIsLocal? C.MSG_MASTER_DELETE_LOCAL:
+			        					C.MSG_MASTER_DELETE, mF);
+			 		    		          
 			    				}
 		        		}
 		                )
@@ -281,27 +280,25 @@ public class ExplorerActivity extends Activity {
 	        return  builder.setView(mLayout)
 	        		.setTitle(R.string.mkdir_title)
 	        		.setPositiveButton("ok",
-	                    new ConfirmListener()
+	                    new DialogInterface.OnClickListener(){ 
+	   
+							public void onClick(DialogInterface dialog,
+									int which) {
+								// TODO Auto-generated method stub
+								EditText et = (EditText)mLayout.findViewById(R.id.new_input_text);
+								String name = et.getText().toString();
+								sendMasterRequest(mIsLocal? C.MSG_MASTER_MKDIR_LOCAL:
+		        					C.MSG_MASTER_MKDIR, name);
+					           
+							}
+	        			
+	        		}
 	                )
 	                .setNegativeButton("cancel", null)
 	                .create();
 	    }
 	       
-	    class ConfirmListener implements DialogInterface.OnClickListener{
-
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
-				EditText et = (EditText)mLayout.findViewById(R.id.new_input_text);
-	            //((ExplorerActivity)getActivity()).mkdir(et.getText().toString());
-				String name = et.getText().toString();
-	            if(mIsLocal){
-	    			sendMasterRequest(C.MSG_MASTER_MKDIR_LOCAL, name);
-	    		}else{
-	    			sendMasterRequest(C.MSG_MASTER_MKDIR, name);
-	    		}
-			}
-			
-		}
+	   
 	    
 	}	
 	

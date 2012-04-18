@@ -218,7 +218,7 @@ public class TaskListActivity extends Activity {
 	
 			return convertView;
 		}
-		
+			
 
 	}
 
@@ -231,7 +231,7 @@ public class TaskListActivity extends Activity {
 		TextView size;
 		ProgressBar progress_bar;
 		CheckBox cb;
-	}
+	}		
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {

@@ -7,6 +7,12 @@
           android:showAsAction="ifRoom|withText"
           />   
          
+         <item android:id="@+id/explorer_refresh"
+          android:icon="@drawable/ic_menu_refresh"
+          android:title="@string/explorer_refresh"
+          android:showAsAction="ifRoom|withText"
+          />
+         
        <item android:id="@+id/explorer_new"
           android:icon="@drawable/ic_menu_new"
           android:title="@string/explorer_new"

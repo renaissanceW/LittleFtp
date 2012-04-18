@@ -66,7 +66,7 @@ public class LoginActivity extends Activity {
 		mFtpMaster.setDst(h, u, p,21);
 		
 		//mFtpMaster.setDst("10.0.1.224", "share", "share",21);
-		mFtpMaster.setDst("10.0.1.230", "wn", "wn",21);
+		//mFtpMaster.setDst("10.0.1.230", "wn", "wn",21);
 		//mFtpMaster.setDst("10.0.1.229", "Anonymous", "",21);
 		mFtpMaster.getHandler().obtainMessage(C.MSG_MASTER_CONNECT).sendToTarget();
 	}

@@ -156,13 +156,14 @@ public class ExplorerActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 
-		case R.id.explorer_back:
-			if(mIsLocal){
-				sendMasterRequest(C.MSG_MASTER_BACK_LOCAL,null);
-			}else{
-				sendMasterRequest(C.MSG_MASTER_BACK,null);
-			}
+		case R.id.explorer_refresh:			
+			sendMasterRequest(mIsLocal?C.MSG_MASTER_LS_LOCAL:
+				C.MSG_MASTER_LS,null);
+			return true;
 			
+		case R.id.explorer_back:			
+			sendMasterRequest(mIsLocal?C.MSG_MASTER_BACK_LOCAL:
+				C.MSG_MASTER_BACK,null);
 			return true;	
 		
 		case R.id.explorer_local:
@@ -170,7 +171,10 @@ public class ExplorerActivity extends Activity {
 			intent1.putExtra("isLocal", true);
 			startActivity(intent1);
 			return true;
-
+		case R.id.explorer_remote:
+			finish();
+			return true;
+			
 		case R.id.explorer_tasklist:
 			Intent intent = new Intent(mCtx, TaskListActivity.class);
     		startActivity(intent);

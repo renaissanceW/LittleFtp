@@ -6,13 +6,24 @@
           android:title="@string/explorer_back"
           android:showAsAction="ifRoom|withText"
           />   
-         
+        
+         <item android:id="@+id/explorer_refresh"
+          android:icon="@drawable/ic_menu_refresh"
+          android:title="@string/explorer_refresh"
+          android:showAsAction="ifRoom|withText"
+          /> 
+        
         <item android:id="@+id/explorer_new"
           android:icon="@drawable/ic_menu_new"
           android:title="@string/explorer_new"
           android:showAsAction="ifRoom|withText"
           /> 
-	          
+	    
+         <item android:id="@+id/explorer_remote"
+          android:icon="@drawable/ic_menu_local"
+          android:title="@string/explorer_remote"
+          android:showAsAction="ifRoom|withText"
+          /> 
         
     	<item android:id="@+id/explorer_tasklist"
           android:icon="@drawable/ic_menu_tasklist"

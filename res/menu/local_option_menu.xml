@@ -19,16 +19,6 @@
           android:showAsAction="ifRoom|withText"
           /> 
 	    
-         <item android:id="@+id/explorer_remote"
-          android:icon="@drawable/ic_menu_local"
-          android:title="@string/explorer_remote"
-          android:showAsAction="ifRoom|withText"
-          /> 
-        
-    	<item android:id="@+id/explorer_tasklist"
-          android:icon="@drawable/ic_menu_tasklist"
-          android:title="@string/explorer_tasklist"
-          android:showAsAction="ifRoom|withText"
-          />  
+
 
 </menu>	

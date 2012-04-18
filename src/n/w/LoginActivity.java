@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -43,7 +42,7 @@ public class LoginActivity extends Activity {
 			switch (msg.what) {
 			case C.MSG_MASTER_CONNECT_REPLY:
 				if (msg.arg1 == C.FTP_OP_SUCC) {
-					Intent intent = new Intent(mCtx, ExplorerActivity.class);
+					Intent intent = new Intent(mCtx, MainActivity.class);
 					intent.putExtra("isLocal", false);
 					startActivity(intent);
 				} else {
@@ -67,7 +66,7 @@ public class LoginActivity extends Activity {
 		
 		//mFtpMaster.setDst("10.0.1.224", "share", "share",21);
 		//mFtpMaster.setDst("10.0.1.230", "wn", "wn",21);
-		//mFtpMaster.setDst("10.0.1.229", "Anonymous", "",21);
+		mFtpMaster.setDst("10.0.1.229", "Anonymous", "",21);
 		mFtpMaster.getHandler().obtainMessage(C.MSG_MASTER_CONNECT).sendToTarget();
 	}
 

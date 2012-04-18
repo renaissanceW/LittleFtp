@@ -5,10 +5,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
 
-import android.app.Activity;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -26,59 +27,78 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-public class TaskListActivity extends Activity {
+public class TaskListFragment extends Fragment {
+	
+	class TaskListTabListener implements ActionBar.TabListener {
 
-	private ListView mListView;
+	    public void onTabSelected(Tab tab, FragmentTransaction ft) {
+	        ft.add(android.R.id.content, TaskListFragment.this, null);
+	        mFtpMaster.setHandler(mHandler);
+			C.sendMessage(mFtpMaster.getHandler(), C.MSG_MASTER_GET_TASK_STATUS);
+			mTimer = new Timer();
+			mTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					C.sendMessage(mHandler, C.MSG_TASKLIST_TIMER_UPDATE);
+				}
+
+			}, 0, 300);
+	    }
+
+	    public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+	        ft.remove(TaskListFragment.this);
+	        mTimer.cancel();
+	        mTimer=null;
+	    }
+
+		public void onTabReselected(Tab tab, FragmentTransaction ft) {
+			// TODO Auto-generated method stub
+		}
+			
+	}
+	
+	
+	MainActivity mParent;	
 	private TaskListAdapter mListAdapter;
+	private ListView mListView;
 	private FtpMaster mFtpMaster;
-	private Handler mHandler;
-	private Context mCtx;
-	private LayoutInflater mInflater;
-	
 	private Timer mTimer;
+	private Handler mHandler;
+	private View mView;
 	
-	/*UI RESOURCE*/
-	private Drawable mDrawDownload;
-	private Drawable mDrawUpload;
-
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		
-		setContentView(R.layout.tasklist);	
-		mListView = (ListView)findViewById(R.id.tasklist_listview);
+	public TaskListFragment(MainActivity parent){
+		mParent = parent;
 		mFtpMaster = FtpMaster.getFtpMasterInstance();
+		mListAdapter = new TaskListAdapter(mParent,null);
+		
 		mHandler = new TaskListHandler();
-		
-		mListAdapter = new TaskListAdapter(this,null);
-		mListView.setAdapter(mListAdapter);
-		mListView.setOnItemClickListener(new TaskItemClickListener());
-		
-		mDrawDownload = getResources().getDrawable(R.drawable.download);
-		mDrawUpload = getResources().getDrawable(R.drawable.upload);
-		
-	}
-	public void onStart() {
-		super.onStart();
-		mFtpMaster.setHandler(mHandler);
-		C.sendMessage(mFtpMaster.getHandler(), C.MSG_MASTER_GET_TASK_STATUS);
-
-		mTimer = new Timer();
-		mTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				C.sendMessage(mHandler, C.MSG_TASKLIST_TIMER_UPDATE);
-			}
-
-		}, 0, 300);
 	}
 	
-	public void onPause(){
-		super.onPause();
-		mTimer.cancel();
+
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		if (mView == null) {
+			mView = inflater.inflate(R.layout.tasklist, container, false);
+			mListView = (ListView) mView.findViewById(R.id.tasklist_listview);
+			mListView.setAdapter(mListAdapter);
+			mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+						public void onItemClick(AdapterView<?> parent,
+								View view, int position, long id) {
+							// TODO Auto-generated method stub
+							mListAdapter.select(position);
+						}
+
+					});
+		}
+		return mView;
 	}
 
 	
+
 	class TaskListHandler extends Handler{
 		@SuppressWarnings("unchecked")
 		public void handleMessage(Message msg){
@@ -93,22 +113,35 @@ public class TaskListActivity extends Activity {
 		}
 	}
 	
-	
-	class TaskItemClickListener implements AdapterView.OnItemClickListener{
 
-		public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-			//MyLog.d("TaskList", "item "+position+" checked");
-			mListAdapter.select(position);		
-		}
-		
+
+	
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		// TODO Auto-generated method stub
+		inflater.inflate(R.menu.tasklist_menu, menu);
 	}
+
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch(item.getItemId()){
+		case R.id.tasklist_delete:
+			mListAdapter.markTaskCancel();
+			return true;		
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	
 	
 	
 	class TaskListAdapter extends BaseAdapter {
 		public TreeSet<Integer> mSelection = new TreeSet<Integer>();
-		
-		
-		
 		
 		public boolean select(int i){
 			if(mSelection.contains(i)){
@@ -133,8 +166,6 @@ public class TaskListActivity extends Activity {
 		
 		private ArrayList<Task> mTasks;
 		public TaskListAdapter(Context ctx, ArrayList<Task> t){
-			mCtx = ctx;
-			mInflater = LayoutInflater.from(mCtx);
 			mTasks = t;
 		}
 		
@@ -169,7 +200,7 @@ public class TaskListActivity extends Activity {
 		public View getView(int position, View convertView, ViewGroup parent) {
 			ViewHolder holder;
 			if(convertView == null){
-				convertView = mInflater.inflate(R.layout.task_item_new, null);		
+				convertView = LayoutInflater.from(mParent).inflate(R.layout.task_item_new, null);		
 				holder = new ViewHolder();			
 				holder.type = (ImageView)convertView.findViewById(R.id.task_type);
 				holder.name = (TextView)convertView.findViewById(R.id.task_name);
@@ -192,10 +223,10 @@ public class TaskListActivity extends Activity {
 			
 			/*type & name*/
 			if(data.getInt("action")==C.TASK_ACTION_DOWNLOAD){
-				holder.type.setImageDrawable(mDrawDownload);
+				holder.type.setImageDrawable(mParent.mDrawDownload);
 				holder.name.setText(data.getString("remoteName"));
 			}else{
-				holder.type.setImageDrawable(mDrawUpload);
+				holder.type.setImageDrawable(mParent.mDrawDownload);
 				holder.name.setText(data.getString("localName"));
 			}
 
@@ -233,32 +264,5 @@ public class TaskListActivity extends Activity {
 		CheckBox cb;
 	}		
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO Auto-generated method stub
-		
-		switch(item.getItemId()){
-		case R.id.tasklist_delete:
-			mListAdapter.markTaskCancel();
-			return true;
-		case R.id.tasklist_back:
-			finish();
-			return true;			
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-		
-
-	}
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
-		MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.tasklist_menu, menu);
-	    return true;
-	}
 
 }
-
-
-

@@ -61,7 +61,7 @@ public class Master extends Thread{
 		MyLog.d("Master", "master thread started");
 		Looper.prepare();
 		mHandler = new FtpMasterHandler();
-		mManager = new TaskManager(mHandler);
+		
 		Looper.loop();
 	}
 
@@ -76,9 +76,11 @@ public class Master extends Thread{
 			switch (msg.what) {
 			case C.MSG_MASTER_CONNECT:
 				establishConnection();
+				mManager = new TaskManager(mHandler, Global.getInstance().mWorkerCount);
 				break;
 			case C.MSG_MASTER_DISCONNECT:
 				destroyConnection();
+				//TODO cancel the manager
 				break;
 				
 				
@@ -190,6 +192,7 @@ public class Master extends Thread{
 	private void establishConnection() {
 		try {
 			mFtp = new FTPClient();
+			mFtp.setControlEncoding("GBK");
 			mFtp.connect(mHost);
 			// After connection attempt, you should check the reply code to
 			// verify success.

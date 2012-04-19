@@ -1,6 +1,7 @@
 package n.w;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -89,7 +90,7 @@ public class CommonFileListAdapter extends BaseAdapter {
 		CommonFileViewHolder holder;
 		if (convertView == null) {
 			holder = new CommonFileViewHolder();
-			convertView = mInflater.inflate(R.layout.file_item_new, null);
+			convertView = mInflater.inflate(R.layout.file_item, null);
 			holder.name = (TextView) convertView.findViewById(R.id.file_name);
 			holder.type = (ImageView) convertView.findViewById(R.id.file_type);
 			holder.size = (TextView) convertView.findViewById(R.id.file_size);
@@ -102,7 +103,6 @@ public class CommonFileListAdapter extends BaseAdapter {
 		CommonFile f = getItem(position);
 		
 		
-
 		holder.name.setText(f.getName());
 
 		if (f.getType() == CommonFile.TYPE_FILE) {

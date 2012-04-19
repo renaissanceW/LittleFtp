@@ -88,7 +88,7 @@ public class ExplorerFragment extends Fragment {
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		// TODO Auto-generated method stub
-		inflater.inflate(R.menu.option_menu, menu);
+		inflater.inflate(R.menu.main_option_menu, menu);
 	}
 
 	@Override
@@ -236,7 +236,7 @@ public class ExplorerFragment extends Fragment {
 
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			LayoutInflater inflater = mParent.getLayoutInflater();
-			mLayout = inflater.inflate(R.layout.one_input_dialog, null);
+			mLayout = inflater.inflate(R.layout.new_dir_dialog, null);
 
 			return builder
 					.setView(mLayout)

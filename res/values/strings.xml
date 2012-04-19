@@ -8,8 +8,9 @@
     <string name="login_user">User</string>
     <string name="login_password">Password</string>
     <string name="login_connect">Connect</string>
+    <string name="login_setting">Setting</string>
   
-    
+    <string name="thread_number">Set thread number</string>
     
     <string name="explorer_back">Back</string>
     <string name="explorer_local">Local Directory</string>

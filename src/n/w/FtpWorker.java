@@ -39,8 +39,6 @@ public class FtpWorker extends Thread {
 	private Handler mHandler;
 	private int mId;
 	
-	private TimerTask mTimerTask = null;
-	
 	private TaskManager mManager;
 	
 	private Task mTask;
@@ -87,6 +85,7 @@ public class FtpWorker extends Thread {
 				}else{
 					fileOp();
 				}
+				destroyConnection();
 				break;
 			default:
 				MyLog.d("FtpInstanceHandler", "unhandled msg"+msg.what);
@@ -117,11 +116,7 @@ public class FtpWorker extends Thread {
 		int port = mTask.mData.getInt("port");
 		String user = mTask.mData.getString("user");
 		String password = mTask.mData.getString("password");
-		if (host.equals(mHost) && port == mPort && user.equals(mUser)
-				&& password.equals(mPassword) && mFtp!=null && mFtp.isConnected())
-		{
-			return true;
-		}
+		
 		
 		mHost = host;
 		mUser = user;
@@ -142,13 +137,7 @@ public class FtpWorker extends Thread {
 			mFtp.setFileType(FTP.BINARY_FILE_TYPE);
 			mFtp.enterLocalPassiveMode();
 			
-			/*keep ftp connection alive*/		
-			mTimerTask = new NoopTask();
-			Global.getInstance().mTimer
-			.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
-					C.FTP_NOOP_TIME_INTERVAL);
-			
-			
+		
 			MyLog.d("Worker", "connection successfully established!");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -184,7 +173,6 @@ public class FtpWorker extends Thread {
 
 			MyLog.d("Worker", "disconnection success!");
 			sendReply(C.MSG_WORKER_DISCONNECT_REPLY, C.FTP_OP_SUCC, null);
-			mTimerTask.cancel();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -14,7 +14,7 @@ import android.os.Handler;
 
 public class TaskManager {
 
-	private static final int WORKER_COUNT	= 3;
+	private int mWorkerCount;
 	
 	private Handler mHandler;
 	
@@ -26,17 +26,19 @@ public class TaskManager {
 	private LinkedList<Task> mWorkingQ;
 
 	
-	public TaskManager(Handler h){
+	public TaskManager(Handler h, int c){
+		MyLog.d("TaskManager", "workerCount:"+c);
+		mWorkerCount = c;
 		mHandler = h;
-		mWorker = new FtpWorker[WORKER_COUNT];
-		for(int i=0; i<WORKER_COUNT; i++){
+		mWorker = new FtpWorker[mWorkerCount];
+		for(int i=0; i<mWorkerCount; i++){
 			mWorker[i] = new FtpWorker(i, mHandler, this);
 		}
 		mWaitingQ = new LinkedList<Task>();
 		mWorkingQ = new LinkedList<Task>();
 		mFreeWorkerPool = new TreeSet<Integer>();
 
-		for(int i = 0; i<WORKER_COUNT; i++){
+		for(int i = 0; i<mWorkerCount; i++){
 			mFreeWorkerPool.add(new Integer(i));
 		}
 		

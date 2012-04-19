@@ -13,6 +13,9 @@ public class Global {
 		return mInstance;
 	}
 	
+	
+	public int mWorkerCount = 1;
+	
 	/*all timer work share 1 thread*/
 	public Timer mTimer = new Timer();
 	public Timer mTimer1 = new Timer();

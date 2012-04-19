@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -33,22 +35,16 @@ public class TaskListFragment extends Fragment {
 
 	    public void onTabSelected(Tab tab, FragmentTransaction ft) {
 	        ft.add(android.R.id.content, TaskListFragment.this, null);
-	        mFtpMaster.setHandler(mHandler);
-			C.sendMessage(mFtpMaster.getHandler(), C.MSG_MASTER_GET_TASK_STATUS);
-			mTimer = new Timer();
-			mTimer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					C.sendMessage(mHandler, C.MSG_TASKLIST_TIMER_UPDATE);
-				}
-
-			}, 0, 300);
+	        mMaster.setHandler(mHandler);
+			C.sendMessage(mMaster.getHandler(), C.MSG_MASTER_GET_TASK_STATUS);		
+			
+			mTimerTask = new UiUpdateTimer();
+			Global.getInstance().mTimer1.schedule(mTimerTask, 0, 300);
 	    }
 
 	    public void onTabUnselected(Tab tab, FragmentTransaction ft) {
 	        ft.remove(TaskListFragment.this);
-	        mTimer.cancel();
-	        mTimer=null;
+	        mTimerTask.cancel();
 	    }
 
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
@@ -57,20 +53,29 @@ public class TaskListFragment extends Fragment {
 			
 	}
 	
+	class UiUpdateTimer extends TimerTask{
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			C.sendMessage(mHandler, C.MSG_TASKLIST_TIMER_UPDATE);
+		}
+		
+	}
+	
 	
 	MainActivity mParent;	
 	private TaskListAdapter mListAdapter;
 	private ListView mListView;
-	private FtpMaster mFtpMaster;
-	private Timer mTimer;
+	private Master mMaster;
+	private TimerTask mTimerTask = null;
 	private Handler mHandler;
 	private View mView;
 	
 	public TaskListFragment(MainActivity parent){
 		mParent = parent;
-		mFtpMaster = FtpMaster.getFtpMasterInstance();
-		mListAdapter = new TaskListAdapter(mParent,null);
-		
+		mMaster = Master.getFtpMasterInstance();
+		mListAdapter = new TaskListAdapter(mParent,null);	
 		mHandler = new TaskListHandler();
 	}
 	
@@ -159,9 +164,9 @@ public class TaskListFragment extends Fragment {
 			for (int i : mSelection) {
 				t[k++] = mTasks.get(i);		
 			}
-			mFtpMaster.mManager.cancelTask(t);	
+			mMaster.mManager.cancelTask(t);	
 			mSelection.clear();
-			C.sendMessage(mFtpMaster.getHandler(),C.MSG_MASTER_GET_TASK_STATUS);
+			C.sendMessage(mMaster.getHandler(),C.MSG_MASTER_GET_TASK_STATUS);
 		}
 		
 		private ArrayList<Task> mTasks;

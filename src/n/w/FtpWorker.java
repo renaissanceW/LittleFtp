@@ -12,6 +12,10 @@ import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import n.w.Master.NoopTask;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -34,7 +38,8 @@ public class FtpWorker extends Thread {
 	private Handler mCallerHandler;
 	private Handler mHandler;
 	private int mId;
-	private Timer mTimer;
+	
+	private TimerTask mTimerTask = null;
 	
 	private TaskManager mManager;
 	
@@ -107,7 +112,7 @@ public class FtpWorker extends Thread {
 	 * false if failed
 	 */
 	boolean Connect() {
-			
+	
 		String host = mTask.mData.getString("host");
 		int port = mTask.mData.getInt("port");
 		String user = mTask.mData.getString("user");
@@ -136,9 +141,14 @@ public class FtpWorker extends Thread {
 			}
 			mFtp.setFileType(FTP.BINARY_FILE_TYPE);
 			mFtp.enterLocalPassiveMode();
-			mTimer = new Timer();
-			mTimer.schedule(new NoopTimerTask(), C.FTP_NOOP_TIME_INTERVAL,
+			
+			/*keep ftp connection alive*/		
+			mTimerTask = new NoopTask();
+			Global.getInstance().mTimer
+			.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
 					C.FTP_NOOP_TIME_INTERVAL);
+			
+			
 			MyLog.d("Worker", "connection successfully established!");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -149,9 +159,11 @@ public class FtpWorker extends Thread {
 		return true;
 	}
 	
-	
-	class NoopTimerTask extends TimerTask{
-		public void run(){
+	class NoopTask extends TimerTask{
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
 			try {
 				mFtp.sendNoOp();
 			} catch (IOException e) {
@@ -159,6 +171,7 @@ public class FtpWorker extends Thread {
 				e.printStackTrace();
 			}
 		}
+		
 	}
 	
 	void destroyConnection() {
@@ -171,7 +184,7 @@ public class FtpWorker extends Thread {
 
 			MyLog.d("Worker", "disconnection success!");
 			sendReply(C.MSG_WORKER_DISCONNECT_REPLY, C.FTP_OP_SUCC, null);
-			mTimer.cancel();
+			mTimerTask.cancel();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -358,7 +371,7 @@ public class FtpWorker extends Thread {
 	/*we statistic the avg speed of the 
 	 * recent 50 read or write calls
 	 */
-	private static int SPEED_GETTER_Q_LEN = 50;
+	private static int SPEED_GETTER_Q_LEN = 100;
 
 	class SpeedItem {
 		public long time;

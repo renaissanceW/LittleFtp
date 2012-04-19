@@ -15,7 +15,7 @@ public class LoginActivity extends Activity {
 
 	private Context mCtx; 
 	
-	private FtpMaster mFtpMaster;
+	private Master mFtpMaster;
 	private Handler mHandler;
 
 	@Override
@@ -25,7 +25,7 @@ public class LoginActivity extends Activity {
 		setContentView(R.layout.login);
 		
 		mCtx = this;
-		mFtpMaster = FtpMaster.getFtpMasterInstance();
+		mFtpMaster = Master.getFtpMasterInstance();
 		mHandler = new LoginHandler();
 		mFtpMaster.setHandler(mHandler);
 	
@@ -64,6 +64,8 @@ public class LoginActivity extends Activity {
 		
 		mFtpMaster.setDst(h, u, p,21);
 		
+		//mFtpMaster.setDst("ftp.pku.cn", "Anonymous", "Anonymous",21);
+		//mFtpMaster.setDst("166.111.26.3", "Anonymous", "Anonymous",21);
 		//mFtpMaster.setDst("10.0.1.224", "share", "share",21);
 		//mFtpMaster.setDst("10.0.1.230", "wn", "wn",21);
 		mFtpMaster.setDst("10.0.1.229", "Anonymous", "",21);

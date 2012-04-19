@@ -17,8 +17,7 @@ public class C {
 
 	/*worker*/
 	public static final int MSG_WORKER_CONNECT 					= 0;
-	public static final int MSG_WORKER_DISCONNECT 				= MSG_WORKER_CONNECT+1;
-	
+	public static final int MSG_WORKER_DISCONNECT 				= MSG_WORKER_CONNECT+1;	
 	public static final int MSG_WORKER_FILEOP				 	= MSG_WORKER_DISCONNECT+1;
 	
 	
@@ -32,34 +31,24 @@ public class C {
 	public static final int MSG_MASTER_CD		 				= MSG_MASTER_DISCONNECT+1;
 	public static final int MSG_MASTER_BACK		 				= MSG_MASTER_CD+1;
 	public static final int MSG_MASTER_LS		 				= MSG_MASTER_BACK+1;
-	/* message ArrayList<FTPFile> */
-	public static final int MSG_MASTER_FILE_DOWN 				= MSG_MASTER_LS+1;
-	/* message ArrayList<String> */
+	public static final int MSG_MASTER_MKDIR					= MSG_MASTER_LS+1;
+	public static final int MSG_MASTER_DELETE					= MSG_MASTER_MKDIR+1;
+	public static final int MSG_MASTER_FILE_DOWN 				= MSG_MASTER_DELETE+1;
 	public static final int MSG_MASTER_FILE_UP 					= MSG_MASTER_FILE_DOWN+1;
 	public static final int MSG_MASTER_GET_TASK_STATUS			= MSG_MASTER_FILE_UP+1;
-	public static final int MSG_MASTER_CD_LOCAL					= MSG_MASTER_GET_TASK_STATUS+1;
-	public static final int MSG_MASTER_BACK_LOCAL				= MSG_MASTER_CD_LOCAL+1;
-	public static final int MSG_MASTER_LS_LOCAL					= MSG_MASTER_BACK_LOCAL+1;
-	public static final int MSG_MASTER_MKDIR					= MSG_MASTER_LS_LOCAL+1;
-	public static final int MSG_MASTER_MKDIR_LOCAL				= MSG_MASTER_MKDIR+1;
-	public static final int MSG_MASTER_DELETE					= MSG_MASTER_MKDIR_LOCAL+1;
-	public static final int MSG_MASTER_DELETE_LOCAL				= MSG_MASTER_DELETE+1;
-	
-	
+
 	
 	public static final int MSG_MASTER_CONNECT_REPLY 			= 300;
 	public static final int MSG_MASTER_DISCONNECT_REPLY 		= MSG_MASTER_CONNECT_REPLY+1;
 	public static final int MSG_MASTER_CD_REPLY 				= MSG_MASTER_DISCONNECT_REPLY+1;
 	public static final int MSG_MASTER_BACK_REPLY 				= MSG_MASTER_CD_REPLY+1;
 	public static final int MSG_MASTER_LS_REPLY 				= MSG_MASTER_BACK_REPLY+1;
-	public static final int MSG_MASTER_FILEOP_REPLY				= MSG_MASTER_LS_REPLY+1;
-	public static final int MSG_MASTER_CD_LOCAL_REPLY			= MSG_MASTER_FILEOP_REPLY+1;
-	public static final int MSG_MASTER_BACK_LOCAL_REPLY			= MSG_MASTER_CD_LOCAL_REPLY+1;
-	public static final int MSG_MASTER_LS_LOCAL_REPLY			= MSG_MASTER_BACK_LOCAL_REPLY+1;	
-	public static final int MSG_MASTER_MKDIR_REPLY				= MSG_MASTER_LS_LOCAL_REPLY+1;
-	public static final int MSG_MASTER_MKDIR_LOCAL_REPLY		= MSG_MASTER_MKDIR_REPLY+1;
-	public static final int MSG_MASTER_DELETE_REPLY				= MSG_MASTER_MKDIR_LOCAL_REPLY+1;
-	public static final int MSG_MASTER_DELETE_LOCAL_REPLY		= MSG_MASTER_DELETE_REPLY+1;
+	public static final int MSG_MASTER_MKDIR_REPLY				= MSG_MASTER_LS_REPLY+1;
+	public static final int MSG_MASTER_DELETE_REPLY				= MSG_MASTER_MKDIR_REPLY+1;
+	public static final int MSG_MASTER_FILEOP_REPLY				= MSG_MASTER_DELETE_REPLY+1;
+	
+
+
 	
 	public static final int MSG_TASKLIST_UPDATE					= 400;
 	public static final int MSG_TASKLIST_TIMER_UPDATE			= MSG_TASKLIST_UPDATE+1;
@@ -92,8 +81,11 @@ public class C {
 		h.obtainMessage(what, obj).sendToTarget();	
 	}
 	
-	public static void sendMessage(Handler h, int what, int arg1, Object obj){
-		h.obtainMessage(what, arg1, 0, obj).sendToTarget();
+	public static int OP_LOCAL = 0;
+	public static int OP_REMOTE = 1;
+	
+	public static void sendMessage(Handler h, int what, boolean isLocal, Object obj){
+		h.obtainMessage(what, isLocal?OP_LOCAL:OP_REMOTE, 0, obj).sendToTarget();
 	}
 	
 	

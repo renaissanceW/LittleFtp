@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -17,12 +19,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-public class FtpMaster extends Thread{
+public class Master extends Thread{
 	
-	private static FtpMaster mMaster = null;
-	public static FtpMaster getFtpMasterInstance(){
+	private static Master mMaster = null;
+	public static Master getFtpMasterInstance(){
 		if(mMaster == null){
-			mMaster = new FtpMaster();
+			mMaster = new Master();
 		}
 		return mMaster;
 	}
@@ -33,7 +35,7 @@ public class FtpMaster extends Thread{
 	private String mPassword = "";
 	
 	/*ftp*/
-	private FTPClient mFtp;	
+	public static FTPClient mFtp;	
 	private String mWorkingDir=".";
 	/*local fs*/
 	private static final String localRoot = "/sdcard/Download";
@@ -44,13 +46,14 @@ public class FtpMaster extends Thread{
 	private Handler mCallerHandler;
 	private Handler mHandler;
 	
-	private Timer mTimer;
+	
+	private TimerTask mTimerTask = null;
 	
 	
 	
 	public TaskManager mManager;
 
-	public FtpMaster(){
+	public Master(){
 		start();
 	}
 	public void run(){
@@ -80,50 +83,53 @@ public class FtpMaster extends Thread{
 				
 				
 			case C.MSG_MASTER_CD:
-				String folderName = (String)msg.obj;
-				chDir(folderName);
+				if(msg.arg1 == C.OP_REMOTE){
+					chDir((String)msg.obj);
+				}else if(msg.arg1 == C.OP_LOCAL){
+					chDirLocal((String)msg.obj);
+				}		
 				break;			
+				
 			case C.MSG_MASTER_BACK:
-				backDir();
+				if(msg.arg1 == C.OP_REMOTE){
+					backDir();
+				}else if(msg.arg1 == C.OP_LOCAL){
+					backDirLocal();
+				}	
 				break;
+				
 			case C.MSG_MASTER_LS:
-				lsDir();
+				if(msg.arg1 == C.OP_REMOTE){
+					lsDir();
+				}else if(msg.arg1 == C.OP_LOCAL){
+					lsDirLocal();
+				}
 				break;
+				
+			case C.MSG_MASTER_MKDIR:
+				if(msg.arg1 == C.OP_REMOTE){
+					mkdir((String)msg.obj);
+				}else if(msg.arg1 == C.OP_LOCAL){
+					mkdirLocal((String)msg.obj);
+				}		
+				break;	
+				
+			case C.MSG_MASTER_DELETE:
+				if(msg.arg1 == C.OP_REMOTE){
+					delete((CommonFile)msg.obj);
+				}else if(msg.arg1 == C.OP_LOCAL){
+					deleteLocal((CommonFile)msg.obj);
+				}		
+				break;				
+				
 			case C.MSG_MASTER_FILE_DOWN:
 				addTask((CommonFile)msg.obj,C.TASK_ACTION_DOWNLOAD);
 				break;
 			case C.MSG_MASTER_FILE_UP:
 				addTask((CommonFile) msg.obj,C.TASK_ACTION_UPLOAD);
 				break;
-					
-				
-			case C.MSG_MASTER_CD_LOCAL:
-				String name = (String)msg.obj;
-				chDirLocal(name);
-				break;			
-			case C.MSG_MASTER_BACK_LOCAL:
-				backDirLocal();
-				break;
-			case C.MSG_MASTER_LS_LOCAL:
-				lsDirLocal();
-				break;
-				
-			
-			case C.MSG_MASTER_MKDIR:
-				mkdir((String)msg.obj);
-				break;
-			case C.MSG_MASTER_MKDIR_LOCAL:
-				mkdirLocal((String)msg.obj);
-				break;
-				
-			case C.MSG_MASTER_DELETE:
-				delete((CommonFile)msg.obj);
-				break;
-			case C.MSG_MASTER_DELETE_LOCAL:
-				deleteLocal((CommonFile)msg.obj);
-				break;	
-			
-
+								
+		
 				
 				
 			case C.MSG_WORKER_FILEOP_REPLY:
@@ -197,9 +203,14 @@ public class FtpMaster extends Thread{
 			} else {
 				mFtp.setFileType(FTP.BINARY_FILE_TYPE);
 				mFtp.enterLocalPassiveMode();
-				mTimer = new Timer();
-				mTimer.schedule(new NoopTimerTask(), C.FTP_NOOP_TIME_INTERVAL,
+				
+				/*keep ftp connection alive*/		
+				mTimerTask = new NoopTask();
+				Global.getInstance().mTimer
+				.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
 						C.FTP_NOOP_TIME_INTERVAL);
+				
+				
 
 				MyLog.d("Master", "connection successfully established!");
 				sendReply(C.MSG_MASTER_CONNECT_REPLY, C.FTP_OP_SUCC, null);
@@ -214,14 +225,20 @@ public class FtpMaster extends Thread{
 
 	}
 	
-	class NoopTimerTask extends TimerTask{
-		public void run(){
+
+	class NoopTask extends TimerTask{
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
 			try {
 				mFtp.sendNoOp();
 			} catch (IOException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
 	}
 	
 	private void destroyConnection() {
@@ -232,7 +249,7 @@ public class FtpMaster extends Thread{
 				mFtp.disconnect();
 			}
 
-			mTimer.cancel();
+			mTimerTask.cancel();
 			MyLog.d("Master", "disconnection success!");
 			sendReply(C.MSG_MASTER_DISCONNECT_REPLY, C.FTP_OP_SUCC, null);	
 			mManager.sendAllWorkerRequest(C.MSG_WORKER_DISCONNECT, null);
@@ -268,7 +285,7 @@ public class FtpMaster extends Thread{
 	private void chDirLocal(String folderName){
 		mFile = new File(mFile, folderName);
 		MyLog.d("Master", "cdLocal succ:" + folderName);
-		sendReply(C.MSG_MASTER_CD_LOCAL_REPLY, C.FTP_OP_SUCC, null);
+		sendReply(C.MSG_MASTER_CD_REPLY, C.FTP_OP_SUCC, null);
 	}
 	
 	
@@ -294,13 +311,13 @@ public class FtpMaster extends Thread{
 	private void backDirLocal(){
 		if(mFile.getAbsolutePath().equals(mFileRoot.getAbsolutePath())){//top
 			MyLog.d("Master", "backDirLocal succ:" + mFile.getAbsolutePath());
-			sendReply(C.MSG_MASTER_BACK_LOCAL_REPLY, C.FTP_OP_FAIL, null);
+			sendReply(C.MSG_MASTER_BACK_REPLY, C.FTP_OP_FAIL, null);
 			return;
 		}
 		
 		mFile=mFile.getParentFile();
 		MyLog.d("Master", "backDirLocal succ:" + mFile.getAbsolutePath());
-		sendReply(C.MSG_MASTER_BACK_LOCAL_REPLY, C.FTP_OP_SUCC, null);
+		sendReply(C.MSG_MASTER_BACK_REPLY, C.FTP_OP_SUCC, null);
 	}
 	
 	
@@ -372,7 +389,7 @@ public class FtpMaster extends Thread{
 		
 		
 		MyLog.d("Master", "lsDirLocal SUCC "+mFile.getAbsolutePath()+" content:"+logStr);
-		sendReply(C.MSG_MASTER_LS_LOCAL_REPLY, C.FTP_OP_SUCC, rlt);
+		sendReply(C.MSG_MASTER_LS_REPLY, C.FTP_OP_SUCC, rlt);
 	}
 	
 	
@@ -397,7 +414,7 @@ public class FtpMaster extends Thread{
 		File f = new File(mFile.getAbsolutePath()+"/"+name);
 		boolean result = f.mkdir();	
 		MyLog.d("Master", "mkdirLocal "+result+" "+f.getAbsolutePath());
-		sendReply(C.MSG_MASTER_MKDIR_LOCAL_REPLY, result?C.FTP_OP_SUCC:C.FTP_OP_FAIL, null);
+		sendReply(C.MSG_MASTER_MKDIR_REPLY, result?C.FTP_OP_SUCC:C.FTP_OP_FAIL, null);
 	}
 	
 	
@@ -449,7 +466,7 @@ public class FtpMaster extends Thread{
 
 		boolean result = innerDeleteLocal(f);
 		MyLog.d("Master", "deleteLocal " + result + " " + f.getAbsolutePath());
-		sendReply(C.MSG_MASTER_DELETE_LOCAL_REPLY, result ? C.FTP_OP_SUCC
+		sendReply(C.MSG_MASTER_DELETE_REPLY, result ? C.FTP_OP_SUCC
 				: C.FTP_OP_FAIL, null);
 
 	}

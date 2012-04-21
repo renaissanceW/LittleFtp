@@ -1,7 +1,9 @@
 package n.w;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.widget.Toast;
 
 public class C {
 	
@@ -143,6 +145,8 @@ public class C {
 	}
 	
 	
-	
+	public static void makeToast(Context ctx, String msg){
+		Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
+	}
 	
 }

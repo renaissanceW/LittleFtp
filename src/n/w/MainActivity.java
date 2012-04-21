@@ -14,9 +14,11 @@ public class MainActivity extends Activity {
 	        
 	        loadResource();
 	        
+	        LoginFragment loginFrag = new LoginFragment(this);
 	        ExplorerFragment remoteFrag = new ExplorerFragment(this, false);
 	        ExplorerFragment localFrag = new ExplorerFragment(this, true);
 	        TaskListFragment taskFrag = new TaskListFragment(this);
+	        loginFrag.setHasOptionsMenu(true);
 	        remoteFrag.setHasOptionsMenu(true);
 	        localFrag.setHasOptionsMenu(true);
 	        taskFrag.setHasOptionsMenu(true);
@@ -26,6 +28,10 @@ public class MainActivity extends Activity {
 	        /*collapse navigation bar to main action bar*/
 	        bar.setDisplayShowTitleEnabled(false);
 	        bar.setDisplayShowHomeEnabled(false);
+	        
+	        bar.addTab(bar.newTab()
+	        		.setText(R.string.Tab_Login)
+	        		.setTabListener(loginFrag.new LoginTabListener()));
 	        bar.addTab(bar.newTab()
 	                .setText(R.string.Tab_Remote)
 	                .setTabListener(remoteFrag.new ExplorerTabListener()));

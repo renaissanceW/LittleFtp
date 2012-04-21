@@ -13,7 +13,7 @@ public class Global {
 		return mInstance;
 	}
 	
-	
+	public boolean mIsMasterConnected=false;
 	public int mWorkerCount = 1;
 	
 	/*all timer work share 1 thread*/

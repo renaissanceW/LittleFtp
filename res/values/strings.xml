@@ -7,9 +7,10 @@
     <string name="login_host">Host</string>
     <string name="login_user">User</string>
     <string name="login_password">Password</string>
-    <string name="login_connect">Connect</string>
+    
     <string name="login_setting">Setting</string>
-  
+    <string name="login_connect">Connect</string>
+    <string name="login_disconnect">Disconnect</string>
     <string name="thread_number">Set thread number</string>
     
     <string name="explorer_back">Back</string>
@@ -37,9 +38,10 @@
 	<string name="rename_title">Please Enter the new Name</string>
 	
 	
+	<string name="Tab_Login">Login</string>
 	<string name="Tab_Remote">Remote</string>
 	<string name="Tab_Local">Local</string>
-	<string name="Tab_TaskList">TaskList</string>
+	<string name="Tab_TaskList">Tasks</string>
   
 
 </resources>

@@ -18,8 +18,7 @@
             android:id="@+id/login_host"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" 
-            android:text="ftp.pku.cn">
+            android:layout_weight="1" >
 
             <requestFocus />
         </EditText>
@@ -39,8 +38,7 @@
             android:id="@+id/login_user"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" 
-            android:text="Anonymous"/>
+            android:layout_weight="1" />
 
     </LinearLayout>
     <LinearLayout
@@ -62,13 +60,6 @@
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/login_connect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/login_connect"
-        android:onClick="doConnect" />
-
-
+  
 
 </LinearLayout>

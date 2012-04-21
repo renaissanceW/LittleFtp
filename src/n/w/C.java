@@ -7,25 +7,22 @@ import android.widget.Toast;
 
 public class C {
 	
-	/*
-	 * the message code
-	 * all the code comform to the following format
-	 */
+
 	
-	/*FTP request and reply*/
-	
-	
-	
+	/*MAX WORKER COUNT*/
+	public static final int MAX_WORKER_COUNT = 3;
 
 	/*worker*/
 	public static final int MSG_WORKER_CONNECT 					= 0;
 	public static final int MSG_WORKER_DISCONNECT 				= MSG_WORKER_CONNECT+1;	
 	public static final int MSG_WORKER_FILEOP				 	= MSG_WORKER_DISCONNECT+1;
+	public static final int MSG_WORKER_KILL				 		= MSG_WORKER_FILEOP+1;
 	
 	
 	public static final int MSG_WORKER_CONNECT_REPLY 			= 100;
 	public static final int MSG_WORKER_DISCONNECT_REPLY 		= MSG_WORKER_CONNECT_REPLY+1;
 	public static final int MSG_WORKER_FILEOP_REPLY		 		= MSG_WORKER_DISCONNECT_REPLY+1;
+	public static final int MSG_WORKER_KILL_REPLY		 		= MSG_WORKER_FILEOP_REPLY+1;
 	
 	/*master*/
 	public static final int MSG_MASTER_CONNECT 					= 200;
@@ -122,6 +119,7 @@ public class C {
 		data.putString("user", user);
 		data.putString("password", password);
 		data.putBoolean("isDir", isDir);
+		
 		
 		data.putString("remoteName", remote.substring(remote.lastIndexOf('/')+1));
 		data.putString("localName", local.substring(local.lastIndexOf('/')+1));

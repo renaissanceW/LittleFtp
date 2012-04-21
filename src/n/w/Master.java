@@ -35,7 +35,7 @@ public class Master extends Thread{
 	private String mPassword = "";
 	
 	/*ftp*/
-	public static FTPClient mFtp;	
+	public static FTPClient mFtp=null;	
 	private String mWorkingDir=".";
 	/*local fs*/
 	private static final String localRoot = "/sdcard/Download";
@@ -47,11 +47,12 @@ public class Master extends Thread{
 	private Handler mHandler;
 	
 	
-	private TimerTask mTimerTask = null;
+//	private TimerTask mTimerTask = null;
 	
 	
 	
 	public TaskManager mManager;
+	
 
 	public Master(){
 		start();
@@ -61,7 +62,8 @@ public class Master extends Thread{
 		MyLog.d("Master", "master thread started");
 		Looper.prepare();
 		mHandler = new FtpMasterHandler();
-		
+		mManager = new TaskManager(mHandler, Global.getInstance().mWorkerCount);
+		Global.getInstance().mManager = mManager;
 		Looper.loop();
 	}
 
@@ -75,8 +77,7 @@ public class Master extends Thread{
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case C.MSG_MASTER_CONNECT:
-				establishConnection();
-				mManager = new TaskManager(mHandler, Global.getInstance().mWorkerCount);
+				establishConnection();		
 				break;
 			case C.MSG_MASTER_DISCONNECT:
 				destroyConnection();
@@ -85,7 +86,7 @@ public class Master extends Thread{
 				
 				
 			case C.MSG_MASTER_CD:
-				if(msg.arg1 == C.OP_REMOTE){
+				if(msg.arg1 == C.OP_REMOTE&&mFtp!=null){
 					chDir((String)msg.obj);
 				}else if(msg.arg1 == C.OP_LOCAL){
 					chDirLocal((String)msg.obj);
@@ -93,7 +94,7 @@ public class Master extends Thread{
 				break;			
 				
 			case C.MSG_MASTER_BACK:
-				if(msg.arg1 == C.OP_REMOTE){
+				if(msg.arg1 == C.OP_REMOTE&&mFtp!=null){
 					backDir();
 				}else if(msg.arg1 == C.OP_LOCAL){
 					backDirLocal();
@@ -101,7 +102,7 @@ public class Master extends Thread{
 				break;
 				
 			case C.MSG_MASTER_LS:
-				if(msg.arg1 == C.OP_REMOTE){
+				if(msg.arg1 == C.OP_REMOTE&&mFtp!=null){
 					lsDir();
 				}else if(msg.arg1 == C.OP_LOCAL){
 					lsDirLocal();
@@ -109,7 +110,7 @@ public class Master extends Thread{
 				break;
 				
 			case C.MSG_MASTER_MKDIR:
-				if(msg.arg1 == C.OP_REMOTE){
+				if(msg.arg1 == C.OP_REMOTE&&mFtp!=null){
 					mkdir((String)msg.obj);
 				}else if(msg.arg1 == C.OP_LOCAL){
 					mkdirLocal((String)msg.obj);
@@ -117,7 +118,7 @@ public class Master extends Thread{
 				break;	
 				
 			case C.MSG_MASTER_DELETE:
-				if(msg.arg1 == C.OP_REMOTE){
+				if(msg.arg1 == C.OP_REMOTE&&mFtp!=null){
 					delete((CommonFile)msg.obj);
 				}else if(msg.arg1 == C.OP_LOCAL){
 					deleteLocal((CommonFile)msg.obj);
@@ -207,12 +208,12 @@ public class Master extends Thread{
 				mFtp.setFileType(FTP.BINARY_FILE_TYPE);
 				mFtp.enterLocalPassiveMode();
 				
-				/*keep ftp connection alive*/		
-				mTimerTask = new NoopTask();
-				Global.getInstance().mTimer
-				.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
-						C.FTP_NOOP_TIME_INTERVAL);
-				
+//				/*keep ftp connection alive*/		
+//				mTimerTask = new NoopTask();
+//				Global.getInstance().mMasterTimer
+//				.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
+//						C.FTP_NOOP_TIME_INTERVAL);
+//				
 				
 
 				MyLog.d("Master", "connection successfully established!");
@@ -247,17 +248,17 @@ public class Master extends Thread{
 	private void destroyConnection() {
 
 		try {
+//			mTimerTask.cancel();
 			mFtp.logout();
 			if (mFtp.isConnected()) {
 				mFtp.disconnect();
 			}
-
-			mTimerTask.cancel();
+			mFtp = null;
 			MyLog.d("Master", "disconnection success!");
 			sendReply(C.MSG_MASTER_DISCONNECT_REPLY, C.FTP_OP_SUCC, null);	
 			mManager.sendAllWorkerRequest(C.MSG_WORKER_DISCONNECT, null);
 		} catch (IOException e) {
-
+			mFtp = null;
 			e.printStackTrace();
 			MyLog.d("Master", "disconnection failed!");
 			sendReply(C.MSG_MASTER_DISCONNECT_REPLY, C.FTP_OP_FAIL, null);

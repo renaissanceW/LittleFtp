@@ -14,10 +14,12 @@ public class Global {
 	}
 	
 	public boolean mIsMasterConnected=false;
+	/*initial worker count*/
 	public int mWorkerCount = 1;
+	public TaskManager mManager = null;
 	
 	/*all timer work share 1 thread*/
-	public Timer mTimer = new Timer();
-	public Timer mTimer1 = new Timer();
+//	public Timer mMasterTimer = new Timer();
+	public Timer mUIUpdateTimer = new Timer();
 	
 }

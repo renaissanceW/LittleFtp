@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,7 +65,8 @@ public class LoginFragment extends Fragment {
 				}
 				break;
 			case C.MSG_MASTER_DISCONNECT_REPLY:
-				if (msg.arg1 == C.FTP_OP_SUCC) {
+				//if (msg.arg1 == C.FTP_OP_SUCC) 
+				{
 					Global.getInstance().mIsMasterConnected=false;
 					enableEdit(true);
 				}
@@ -105,7 +107,13 @@ public class LoginFragment extends Fragment {
 			mPwdText = (EditText)  mView.findViewById(R.id.login_password);
 			
 			setDefault("10.0.1.229", "Anonymous", "Anonymous");
+			//setDefault("ftp.pku.cn", "Anonymous", "Anonymous");
 		}
+		
+		if (Global.getInstance().mIsMasterConnected==true) {
+			enableEdit(false);
+		}
+		
 		return mView;
 	}
 
@@ -121,10 +129,6 @@ public class LoginFragment extends Fragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		
 		switch(item.getItemId()){
-		case R.id.login_setting:
-			SettingFragment setting = new SettingFragment();
-			setting.show(getFragmentManager(), "delete");
-			return true;
 		case R.id.login_connect:
 			doConnect();
 			return true;
@@ -158,40 +162,6 @@ public class LoginFragment extends Fragment {
 	}
 	
 
-	class SettingFragment extends DialogFragment {
-		Integer[] mThreadCount={1,2,3};
-		View mLayout;
-		@Override
-		public Dialog onCreateDialog(Bundle savedInstanceState) {
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(mParent);
-			mLayout = mParent.getLayoutInflater().inflate(R.layout.login_setting, null);
-			/*The spinner part*/
-			Spinner spinner = (Spinner)mLayout.findViewById(R.id.thread_number_spinner);
-			ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(mParent,
-					android.R.layout.simple_spinner_item,mThreadCount);
-			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-			spinner.setAdapter(adapter);
-			spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-
-				public void onItemSelected(AdapterView<?> arg0, View arg1,
-						int arg2, long arg3) {
-					Global.getInstance().mWorkerCount=mThreadCount[arg2];				
-				}
-
-				public void onNothingSelected(AdapterView<?> arg0) {
-					
-					
-				}
-			});
-			spinner.setVisibility(View.VISIBLE); 
-			 
-			return builder
-					.setView(mLayout)
-					.setTitle(R.string.thread_number).create();
-		}
-
-	}
-
+	
 
 }

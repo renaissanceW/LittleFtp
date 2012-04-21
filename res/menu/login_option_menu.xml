@@ -13,11 +13,7 @@
           android:showAsAction="ifRoom|withText"
           />
     
-        <item android:id="@+id/login_setting"
-          android:icon="@drawable/ic_menu_setting"
-          android:title="@string/login_setting"
-          android:showAsAction="ifRoom|withText"
-          />   
+         
         
   
 

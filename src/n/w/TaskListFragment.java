@@ -1,17 +1,18 @@
 package n.w;
 
 import java.util.ArrayList;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,11 +23,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 public class TaskListFragment extends Fragment {
@@ -39,7 +43,7 @@ public class TaskListFragment extends Fragment {
 			C.sendMessage(mMaster.getHandler(), C.MSG_MASTER_GET_TASK_STATUS);		
 			
 			mTimerTask = new UiUpdateTimer();
-			Global.getInstance().mTimer1.schedule(mTimerTask, 0, 300);
+			Global.getInstance().mUIUpdateTimer.schedule(mTimerTask, 0, 300);
 	    }
 
 	    public void onTabUnselected(Tab tab, FragmentTransaction ft) {
@@ -137,6 +141,10 @@ public class TaskListFragment extends Fragment {
 		case R.id.tasklist_delete:
 			mListAdapter.markTaskCancel();
 			return true;		
+		case R.id.tasklist_setting:
+			SettingFragment setting = new SettingFragment();
+			setting.show(getFragmentManager(), "delete");
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -268,6 +276,63 @@ public class TaskListFragment extends Fragment {
 		ProgressBar progress_bar;
 		CheckBox cb;
 	}		
+
+	class SettingFragment extends DialogFragment {
+		public SettingFragment(){
+			mThreadCount = new Integer[C.MAX_WORKER_COUNT];
+			for(int i=0;i<C.MAX_WORKER_COUNT;i++){
+				mThreadCount[i] = new Integer(i+1);
+			}
+		}
+		Integer[] mThreadCount;
+		View mLayout;
+		Spinner spinner;
+		int mLocalCount = Global.getInstance().mWorkerCount;
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(mParent);
+			mLayout = mParent.getLayoutInflater().inflate(R.layout.login_setting, null);
+			/*The spinner part*/
+			spinner = (Spinner)mLayout.findViewById(R.id.thread_number_spinner);
+			ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(mParent,
+					android.R.layout.simple_spinner_item,mThreadCount);
+			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			spinner.setAdapter(adapter);
+			
+			spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+				public void onItemSelected(AdapterView<?> arg0, View arg1,
+						int arg2, long arg3) {
+					mLocalCount = mThreadCount[arg2];
+				}
+
+				public void onNothingSelected(AdapterView<?> arg0) {
+								
+				}
+			});
+			spinner.setVisibility(View.VISIBLE); 
+		
+			 
+			return builder
+					.setView(mLayout)
+					.setTitle(R.string.thread_number)
+					.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+						
+						public void onClick(DialogInterface dialog, int which) {
+							// TODO Auto-generated method stub
+							Global.getInstance().mWorkerCount=mLocalCount;
+							if(Global.getInstance().mManager!=null){
+								Global.getInstance().mManager.adjustWorkerPoolSize(mLocalCount);
+							}
+						}
+					})
+					.setNegativeButton("cancel", null)
+					.create();
+		}
+
+	}
+
 
 
 }

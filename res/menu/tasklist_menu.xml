@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     
+     <item android:id="@+id/tasklist_setting"
+          android:icon="@drawable/ic_menu_setting"
+          android:title="@string/login_setting"
+          android:showAsAction="ifRoom|withText"
+          /> 
+    
     <item android:id="@+id/tasklist_delete"
           android:icon="@drawable/ic_menu_delete"
           android:title="@string/tasklist_delete"

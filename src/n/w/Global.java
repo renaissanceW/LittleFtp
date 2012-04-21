@@ -3,15 +3,23 @@ package n.w;
 import java.util.Timer;
 
 public class Global {
+	
+	/*The so-called fuck lazy-initialized thread-safe
+	 * singleton
+	 */
+	private Global(){
+	}
 
-	private static Global mInstance=null;
+	private static class GlobalHolder{
+		private static Global mInstance= new Global();	
+	}
 	
 	public static Global getInstance(){
-		if(mInstance==null){
-			mInstance = new Global();
-		}
-		return mInstance;
+		return GlobalHolder.mInstance;
 	}
+	
+	
+	
 	
 	public boolean mIsMasterConnected=false;
 	/*initial worker count*/

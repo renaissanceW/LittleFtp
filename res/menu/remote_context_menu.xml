@@ -4,4 +4,6 @@
           android:title="@string/ctx_menu_download"/>
     <item android:id="@+id/remote_ctx_menu_delete"
           android:title="@string/ctx_menu_delete"/>
+    <item android:id="@+id/remote_ctx_menu_rename"
+          android:title="@string/ctx_menu_rename"/>
 </menu>

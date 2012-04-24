@@ -57,19 +57,19 @@ public class CommonFileListAdapter extends BaseAdapter {
 	public int getCount() {
 		// TODO Auto-generated method stub
 		int size = (mList==null?0:mList.length);
-		MyLog.d("ListDirAdapter", "size: "+size);
+//		MyLog.d("ListDirAdapter", "size: "+size);
 		return size;
 	}
 
 	public CommonFile getItem(int position) {
 		// TODO Auto-generated method stub
-		MyLog.d("ListDirAdapter", "position: " + position);
+//		MyLog.d("ListDirAdapter", "position: " + position);
 		return mList == null ? null : mList[position];	
 	}
 
 	public long getItemId(int position) {
 		// TODO Auto-generated method stub
-		MyLog.d("ListDirAdapter", "id: "+position);
+//		MyLog.d("ListDirAdapter", "id: "+position);
 		return position;
 	}
 	
@@ -180,7 +180,8 @@ class CommonFile{
 		long k = s / 1024;
 		long m = k / 1024;
 		String content = (m != 0) ? String.valueOf(m) + "MB"
-				: (k != 0) ? String.valueOf(k) + "KB" : "1KB";
+				: (k != 0) ? String.valueOf(k) + "KB" 
+				: String.valueOf(s) + "B";
 		
 		return content;
 	}

@@ -43,9 +43,6 @@ public class TaskManager {
 		mNewWorkerCount = c;
 		mHandler = h;
 		mWorker = new FtpWorker[C.MAX_WORKER_COUNT];
-		for(int i=0; i<C.MAX_WORKER_COUNT; i++){
-			mWorker[i] = null;
-		}
 		for(int i=0; i<mCurrentWorkerCount; i++){
 			mWorker[i] = new FtpWorker(i, mHandler, this);
 		}

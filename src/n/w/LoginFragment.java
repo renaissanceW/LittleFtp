@@ -47,7 +47,10 @@ public class LoginFragment extends Fragment {
 		
 	}
 	
-	public LoginFragment(MainActivity parent){
+	public LoginFragment(){
+		
+	}
+	public void init(MainActivity parent){
 		mParent = parent;
 		mMaster = Master.getFtpMasterInstance();	
 		mHandler = new LoginHandler();
@@ -106,7 +109,7 @@ public class LoginFragment extends Fragment {
 			mUserText = (EditText) mView.findViewById(R.id.login_user);
 			mPwdText = (EditText)  mView.findViewById(R.id.login_password);
 			
-			setDefault("10.0.1.229", "Anonymous", "Anonymous");
+			setDefault("10.0.1.231", "Anonymous", "Anonymous");
 			//setDefault("ftp.pku.cn", "Anonymous", "Anonymous");
 		}
 		

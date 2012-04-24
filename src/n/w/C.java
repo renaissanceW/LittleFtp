@@ -35,6 +35,10 @@ public class C {
 	public static final int MSG_MASTER_FILE_DOWN 				= MSG_MASTER_DELETE+1;
 	public static final int MSG_MASTER_FILE_UP 					= MSG_MASTER_FILE_DOWN+1;
 	public static final int MSG_MASTER_GET_TASK_STATUS			= MSG_MASTER_FILE_UP+1;
+	public static final int MSG_MASTER_RENAME					= MSG_MASTER_GET_TASK_STATUS+1;
+	
+	
+	public static final int MSG_MASTER_FTP_NOOP					= MSG_MASTER_RENAME+1;
 
 	
 	public static final int MSG_MASTER_CONNECT_REPLY 			= 300;
@@ -45,7 +49,7 @@ public class C {
 	public static final int MSG_MASTER_MKDIR_REPLY				= MSG_MASTER_LS_REPLY+1;
 	public static final int MSG_MASTER_DELETE_REPLY				= MSG_MASTER_MKDIR_REPLY+1;
 	public static final int MSG_MASTER_FILEOP_REPLY				= MSG_MASTER_DELETE_REPLY+1;
-	
+	public static final int MSG_MASTER_RENAME_REPLY				= MSG_MASTER_FILEOP_REPLY+1;
 
 
 	

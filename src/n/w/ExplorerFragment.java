@@ -8,6 +8,8 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -54,9 +56,14 @@ public class ExplorerFragment extends Fragment {
 
 	private boolean mIsLocal = false;
 
-	public ExplorerFragment(MainActivity parent, boolean isLocal) {
+	//TODO why we need a fucking empty public constructor??
+	public ExplorerFragment() {
+		
+	}
+	
+	public void init(MainActivity parent, boolean isLocal) {
 		mParent = parent;
-		mIsLocal = isLocal;
+		mIsLocal = isLocal;	
 		mMaster = Master.getFtpMasterInstance();
 		mHandler = new ExplorerHandler();
 	}
@@ -65,7 +72,9 @@ public class ExplorerFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		mMaster = Master.getFtpMasterInstance();
 		sendMasterRequest(C.MSG_MASTER_LS, null);
+		
 	}
 
 	@Override
@@ -133,14 +142,30 @@ public class ExplorerFragment extends Fragment {
 			DeleteConfirmFragment confirmFragment = new DeleteConfirmFragment(f);
 			confirmFragment.show(getFragmentManager(), "delete");
 			return true;
+		case R.id.remote_ctx_menu_rename:
+		case R.id.local_ctx_menu_rename:
+			DialogFragment newFragment = new RenameInputFragment(f.getName());
+			newFragment.show(getFragmentManager(), "dialog");
+			return true;
 		case R.id.remote_ctx_menu_download:
 			sendMasterRequest(C.MSG_MASTER_FILE_DOWN, f);
 			return true;
 
 		case R.id.local_ctx_menu_upload:
 			sendMasterRequest(C.MSG_MASTER_FILE_UP, f);
-
 			return true;
+			
+		case R.id.local_ctx_menu_open:
+			
+			Intent intent = new Intent();
+			intent.setData(Uri.fromFile(f.getFile()));
+			intent.setAction(Intent.ACTION_VIEW);
+			try{
+			startActivity(intent);
+			}catch (Exception e){
+				Toast.makeText(mParent, "Can not find suitable application", 
+						Toast.LENGTH_SHORT).show();
+			}
 		default:
 			return super.onContextItemSelected(item);
 		}
@@ -155,6 +180,7 @@ public class ExplorerFragment extends Fragment {
 			case C.MSG_MASTER_BACK_REPLY:
 			case C.MSG_MASTER_MKDIR_REPLY:
 			case C.MSG_MASTER_DELETE_REPLY:
+			case C.MSG_MASTER_RENAME_REPLY:
 				if (msg.arg1 == C.FTP_OP_SUCC) {
 					sendMasterRequest(C.MSG_MASTER_LS, null);
 				} else {
@@ -251,6 +277,46 @@ public class ExplorerFragment extends Fragment {
 											.findViewById(R.id.new_input_text);
 									String name = et.getText().toString();
 									sendMasterRequest(C.MSG_MASTER_MKDIR, name);
+
+								}
+
+							}).setNegativeButton("cancel", null).create();
+		}
+
+	}
+	
+	
+	class RenameInputFragment extends DialogFragment {
+
+		View mLayout;
+		String from;
+		public RenameInputFragment(String f){
+			from = f;
+		}
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			LayoutInflater inflater = mParent.getLayoutInflater();
+			mLayout = inflater.inflate(R.layout.new_dir_dialog, null);
+
+			return builder
+					.setView(mLayout)
+					.setTitle(R.string.rename_title)
+					.setPositiveButton("ok",
+							new DialogInterface.OnClickListener() {
+
+								public void onClick(DialogInterface dialog,
+										int which) {
+									// TODO Auto-generated method stub
+									EditText et = (EditText) mLayout
+											.findViewById(R.id.new_input_text);
+									String to = et.getText().toString();
+									Bundle obj = new Bundle();
+									obj.putString("from", from);
+									obj.putString("to", to);
+									sendMasterRequest(C.MSG_MASTER_RENAME, obj);
 
 								}
 

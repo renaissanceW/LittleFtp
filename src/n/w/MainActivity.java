@@ -14,10 +14,14 @@ public class MainActivity extends Activity {
 	        
 	        loadResource();
 	        
-	        LoginFragment loginFrag = new LoginFragment(this);
-	        ExplorerFragment remoteFrag = new ExplorerFragment(this, false);
-	        ExplorerFragment localFrag = new ExplorerFragment(this, true);
-	        TaskListFragment taskFrag = new TaskListFragment(this);
+	        LoginFragment loginFrag = new LoginFragment();
+	        loginFrag.init(this);
+	        ExplorerFragment remoteFrag = new ExplorerFragment();
+	        remoteFrag.init(this, false);
+	        ExplorerFragment localFrag = new ExplorerFragment();
+	        localFrag.init(this, true);
+	        TaskListFragment taskFrag = new TaskListFragment();
+	        taskFrag.init(this);
 	        loginFrag.setHasOptionsMenu(true);
 	        remoteFrag.setHasOptionsMenu(true);
 	        localFrag.setHasOptionsMenu(true);

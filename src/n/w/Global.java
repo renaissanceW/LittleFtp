@@ -27,7 +27,8 @@ public class Global {
 	public TaskManager mManager = null;
 	
 	/*all timer work share 1 thread*/
+	public Timer mGlobalTimer = new Timer();
 //	public Timer mMasterTimer = new Timer();
-	public Timer mUIUpdateTimer = new Timer();
+//	public Timer mUIUpdateTimer = new Timer();
 	
 }

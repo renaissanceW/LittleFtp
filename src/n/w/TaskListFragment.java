@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.TimerTask;
 import java.util.TreeSet;
 
+import n.w.ExplorerFragment.ExplorerHandler;
+
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
@@ -43,7 +45,7 @@ public class TaskListFragment extends Fragment {
 			C.sendMessage(mMaster.getHandler(), C.MSG_MASTER_GET_TASK_STATUS);		
 			
 			mTimerTask = new UiUpdateTimer();
-			Global.getInstance().mUIUpdateTimer.schedule(mTimerTask, 0, 300);
+			Global.getInstance().mGlobalTimer.schedule(mTimerTask, 0, 300);
 	    }
 
 	    public void onTabUnselected(Tab tab, FragmentTransaction ft) {
@@ -76,14 +78,17 @@ public class TaskListFragment extends Fragment {
 	private Handler mHandler;
 	private View mView;
 	
-	public TaskListFragment(MainActivity parent){
+	public TaskListFragment(){
+		
+	}
+	
+
+	public void init(MainActivity parent){
 		mParent = parent;
 		mMaster = Master.getFtpMasterInstance();
 		mListAdapter = new TaskListAdapter(mParent,null);	
 		mHandler = new TaskListHandler();
 	}
-	
-
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,

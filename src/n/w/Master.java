@@ -47,7 +47,7 @@ public class Master extends Thread{
 	private Handler mHandler;
 	
 	
-//	private TimerTask mTimerTask = null;
+	private TimerTask mTimerTask = null;
 	
 	
 	
@@ -83,7 +83,23 @@ public class Master extends Thread{
 				destroyConnection();
 				//TODO cancel the manager
 				break;
+			case C.MSG_MASTER_FTP_NOOP:
+				try {
+					mFtp.sendNoOp();			
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				break;
 				
+			case C.MSG_MASTER_RENAME:
+				Bundle b = (Bundle)msg.obj;
+				if(msg.arg1 == C.OP_REMOTE&&mFtp!=null){
+					rename(b.getString("from"), b.getString("to"));
+				}else if(msg.arg1 == C.OP_LOCAL){
+					renameLocal(b.getString("from"), b.getString("to"));
+				}		
+				break;
 				
 			case C.MSG_MASTER_CD:
 				if(msg.arg1 == C.OP_REMOTE&&mFtp!=null){
@@ -208,12 +224,12 @@ public class Master extends Thread{
 				mFtp.setFileType(FTP.BINARY_FILE_TYPE);
 				mFtp.enterLocalPassiveMode();
 				
-//				/*keep ftp connection alive*/		
-//				mTimerTask = new NoopTask();
-//				Global.getInstance().mMasterTimer
-//				.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
-//						C.FTP_NOOP_TIME_INTERVAL);
-//				
+				/*keep ftp connection alive*/		
+				mTimerTask = new NoopTask();
+				Global.getInstance().mGlobalTimer
+				.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
+						C.FTP_NOOP_TIME_INTERVAL);
+				
 				
 
 				MyLog.d("Master", "connection successfully established!");
@@ -234,13 +250,10 @@ public class Master extends Thread{
 
 		@Override
 		public void run() {
+			
 			// TODO Auto-generated method stub
-			try {
-				mFtp.sendNoOp();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			C.sendMessage(mHandler, C.MSG_MASTER_FTP_NOOP);
+			
 		}
 		
 	}
@@ -248,7 +261,7 @@ public class Master extends Thread{
 	private void destroyConnection() {
 
 		try {
-//			mTimerTask.cancel();
+			mTimerTask.cancel();
 			mFtp.logout();
 			if (mFtp.isConnected()) {
 				mFtp.disconnect();
@@ -264,6 +277,27 @@ public class Master extends Thread{
 			sendReply(C.MSG_MASTER_DISCONNECT_REPLY, C.FTP_OP_FAIL, null);
 		}
 
+	}
+	
+	
+	private void rename(String from, String to){
+		try {
+			mFtp.rename(from, to);
+			MyLog.d("Master", "rename success from: "+from+" to: "+to);
+			sendReply(C.MSG_MASTER_RENAME_REPLY, C.FTP_OP_SUCC, null);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			MyLog.d("Master", "rename fail from: "+from+" to: "+to);
+			sendReply(C.MSG_MASTER_RENAME_REPLY, C.FTP_OP_FAIL, null);
+		}
+	}
+	
+	private void renameLocal(String from, String to){
+		File f = new File(mFile.getPath()+"/"+from);
+		boolean rlt = f.renameTo(new File(mFile.getPath()+"/"+to));
+		MyLog.d("Master", "renameLocal "+ (rlt?"success":"fail")+ " from: "+from+" to: "+to);
+		sendReply(C.MSG_MASTER_RENAME_REPLY,(rlt?C.FTP_OP_SUCC: C.FTP_OP_FAIL) , null);
 	}
 	
 	

@@ -1,4 +1,4 @@
-package n.w;
+package n.w.uitil;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -150,5 +150,9 @@ public class C {
 	public static void makeToast(Context ctx, String msg){
 		Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
 	}
+	
+	
+	
+	
 	
 }

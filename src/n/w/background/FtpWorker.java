@@ -1,4 +1,4 @@
-package n.w;
+package n.w.background;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -10,12 +10,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
-import n.w.Master.NoopTask;
+import n.w.uitil.C;
+import n.w.uitil.MyLog;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -133,6 +130,7 @@ public class FtpWorker extends Thread {
 		
 		try {
 			mFtp = new FTPClient();
+			mFtp.setControlEncoding("GBK");
 			mFtp.connect(mHost, mPort);
 			if (!FTPReply.isPositiveCompletion(mFtp.getReplyCode())) {
 				mFtp.disconnect();

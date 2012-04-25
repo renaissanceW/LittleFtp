@@ -4,14 +4,22 @@
     <string name="hello">Hello World, LittleFtpActivity!</string>
     <string name="app_name">LittleFtp</string>
     
-    <string name="login_host">Host</string>
-    <string name="login_user">User</string>
-    <string name="login_password">Password</string>
-    
-    <string name="login_setting">Setting</string>
+    <string name="login_new">New Profile</string>
+    <string name="login_edit">Edit Profile</string>
+    <string name="login_delete">Delete Profile</string>
     <string name="login_connect">Connect</string>
     <string name="login_disconnect">Disconnect</string>
-    <string name="thread_number">Set thread number</string>
+    <string name="login_profile">Profile</string>
+
+    
+    
+    <string name="profile_name">Name</string>
+    <string name="profile_host">Host</string>
+    <string name="profile_port">Port</string>
+    <string name="profile_user">User</string>
+    <string name="profile_pwd">Password</string>
+    <string name="profile_user_hint">Blank for Anonymous</string>
+    
     
     <string name="explorer_back">Back</string>
     <string name="explorer_local">Local Directory</string>
@@ -27,6 +35,7 @@
 	<string name="tasklist_delete">Delete</string>	
 	<string name="tasklist_status_transfer">Transferring</string>
 	<string name="tasklist_status_wait">Waiting</string>
+	<string name="tasklist_setting">Setting</string>
 	
 
 	<string name="ctx_menu_delete">Delete</string>
@@ -35,10 +44,11 @@
 	<string name="ctx_menu_open">Open</string>
 	<string name="ctx_menu_rename">Rename</string>
 	
-	<string name="delete_confirm">Are you sure to delete this item?</string>
+	<string name="delete_confirm_title">Are you sure to delete this item?</string>
 	<string name="mkdir_title">Please Enter the Directory Name</string>
 	<string name="rename_title">Please Enter the new Name</string>
-	
+	<string name="thread_number_tile">Set thread number</string>
+	<string name="profile_title">Profile</string>
 	
 	<string name="Tab_Login">Login</string>
 	<string name="Tab_Remote">Remote</string>

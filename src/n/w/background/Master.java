@@ -1,13 +1,14 @@
-package n.w;
+package n.w.background;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+
+import n.w.uitil.C;
+import n.w.uitil.Global;
+import n.w.uitil.MyLog;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -39,7 +40,6 @@ public class Master extends Thread{
 	private String mWorkingDir=".";
 	/*local fs*/
 	private static final String localRoot = "/sdcard/Download";
-	private File mFileRoot = new File(localRoot);
 	private File mFile = new File(localRoot);
 
 	
@@ -85,7 +85,9 @@ public class Master extends Thread{
 				break;
 			case C.MSG_MASTER_FTP_NOOP:
 				try {
-					mFtp.sendNoOp();			
+					if(mFtp!=null){
+						mFtp.sendNoOp();						
+					}	
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -226,11 +228,11 @@ public class Master extends Thread{
 				
 				/*keep ftp connection alive*/		
 				mTimerTask = new NoopTask();
-				Global.getInstance().mGlobalTimer
+				Global.getInstance().mMasterTimer
 				.schedule(mTimerTask, C.FTP_NOOP_TIME_INTERVAL, 
 						C.FTP_NOOP_TIME_INTERVAL);
 				
-				
+				mWorkingDir=".";
 
 				MyLog.d("Master", "connection successfully established!");
 				sendReply(C.MSG_MASTER_CONNECT_REPLY, C.FTP_OP_SUCC, null);
@@ -304,19 +306,21 @@ public class Master extends Thread{
 	
 	private void chDir(String folderName) {
 
+		boolean rlt = false;
 		try {
 			/* it's the relative path */
-			mFtp.changeWorkingDirectory(folderName);
-			mWorkingDir = mWorkingDir + "/" + folderName;
-			MyLog.d("Master", "cd success" + folderName);
-			sendReply(C.MSG_MASTER_CD_REPLY, C.FTP_OP_SUCC, null);
+			rlt = mFtp.changeWorkingDirectory(folderName);		
 		} catch (IOException e) {
-
+			rlt = false;
 			e.printStackTrace();
-			MyLog.d("Master", "cd fail " + folderName);
-			sendReply(C.MSG_MASTER_CD_REPLY, C.FTP_OP_FAIL, null);
 		}
-
+			
+		if(rlt){
+			mWorkingDir = mWorkingDir + "/" + folderName;
+		}
+		
+		MyLog.d("Master", "cd "+ (rlt?"succ ":"fail ")+folderName);
+		sendReply(C.MSG_MASTER_CD_REPLY, rlt? C.FTP_OP_SUCC : C.FTP_OP_FAIL, null);
 	}
 	
 	
@@ -330,30 +334,27 @@ public class Master extends Thread{
 	
 	private void backDir() {
 		if (!mWorkingDir.equals(".")) {
+			boolean rlt = false;
 			try {
-				boolean rlt = mFtp.changeToParentDirectory();
-				mWorkingDir = mWorkingDir.substring(0,mWorkingDir.lastIndexOf('/'));
-				MyLog.d("Master", "backDir succ");
-				sendReply(C.MSG_MASTER_BACK_REPLY, C.FTP_OP_SUCC, null);
+				rlt = mFtp.changeToParentDirectory();			
 			} catch (IOException e) {
-				
+				rlt = false;
 				e.printStackTrace();
-				MyLog.d("Master", "backDir fail");
-				sendReply(C.MSG_MASTER_BACK_REPLY, C.FTP_OP_FAIL, null);
 			}
-
+					
+			if(rlt){
+				mWorkingDir = mWorkingDir.substring(0,mWorkingDir.lastIndexOf('/'));
+			}
+			MyLog.d("Master", "backDir "+ (rlt?"succ ":"fail "));
+			sendReply(C.MSG_MASTER_BACK_REPLY, rlt? C.FTP_OP_SUCC : C.FTP_OP_FAIL, null);
 		}
 	}
 	
 	
 	private void backDirLocal(){
-		if(mFile.getAbsolutePath().equals(mFileRoot.getAbsolutePath())){//top
-			MyLog.d("Master", "backDirLocal succ:" + mFile.getAbsolutePath());
-			sendReply(C.MSG_MASTER_BACK_REPLY, C.FTP_OP_FAIL, null);
-			return;
-		}
 		
-		mFile=mFile.getParentFile();
+		File f = mFile.getParentFile();
+		mFile= (f==null? mFile:f);
 		MyLog.d("Master", "backDirLocal succ:" + mFile.getAbsolutePath());
 		sendReply(C.MSG_MASTER_BACK_REPLY, C.FTP_OP_SUCC, null);
 	}

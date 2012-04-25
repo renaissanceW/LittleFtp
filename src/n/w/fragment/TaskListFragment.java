@@ -1,11 +1,15 @@
-package n.w;
+package n.w.fragment;
 
 import java.util.ArrayList;
 import java.util.TimerTask;
 import java.util.TreeSet;
 
-import n.w.ExplorerFragment.ExplorerHandler;
-
+import n.w.MainActivity;
+import n.w.R;
+import n.w.background.Master;
+import n.w.background.Task;
+import n.w.uitil.C;
+import n.w.uitil.Global;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
@@ -37,7 +41,7 @@ import android.widget.TextView;
 
 public class TaskListFragment extends Fragment {
 	
-	class TaskListTabListener implements ActionBar.TabListener {
+	public class TaskListTabListener implements ActionBar.TabListener {
 
 	    public void onTabSelected(Tab tab, FragmentTransaction ft) {
 	        ft.add(android.R.id.content, TaskListFragment.this, null);
@@ -45,7 +49,7 @@ public class TaskListFragment extends Fragment {
 			C.sendMessage(mMaster.getHandler(), C.MSG_MASTER_GET_TASK_STATUS);		
 			
 			mTimerTask = new UiUpdateTimer();
-			Global.getInstance().mGlobalTimer.schedule(mTimerTask, 0, 300);
+			Global.getInstance().mUIUpdateTimer.schedule(mTimerTask, 0, 300);
 	    }
 
 	    public void onTabUnselected(Tab tab, FragmentTransaction ft) {
@@ -321,7 +325,7 @@ public class TaskListFragment extends Fragment {
 			 
 			return builder
 					.setView(mLayout)
-					.setTitle(R.string.thread_number)
+					.setTitle(R.string.thread_number_tile)
 					.setPositiveButton("ok", new DialogInterface.OnClickListener() {
 						
 						public void onClick(DialogInterface dialog, int which) {

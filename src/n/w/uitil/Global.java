@@ -1,6 +1,8 @@
-package n.w;
+package n.w.uitil;
 
 import java.util.Timer;
+
+import n.w.background.TaskManager;
 
 public class Global {
 	
@@ -27,8 +29,8 @@ public class Global {
 	public TaskManager mManager = null;
 	
 	/*all timer work share 1 thread*/
-	public Timer mGlobalTimer = new Timer();
-//	public Timer mMasterTimer = new Timer();
-//	public Timer mUIUpdateTimer = new Timer();
+	//public Timer mGlobalTimer = new Timer();
+	public Timer mMasterTimer = new Timer();
+	public Timer mUIUpdateTimer = new Timer();
 	
 }

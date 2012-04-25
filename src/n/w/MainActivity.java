@@ -1,6 +1,12 @@
 package n.w;
 
 
+import n.w.R;
+import n.w.R.drawable;
+import n.w.R.string;
+import n.w.fragment.ExplorerFragment;
+import n.w.fragment.LoginFragment;
+import n.w.fragment.TaskListFragment;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;

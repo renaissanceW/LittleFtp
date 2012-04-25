@@ -2,5 +2,5 @@
 <resources>
 <dimen name="small">12sp</dimen>
 <dimen name="medium">16sp</dimen>
-<dimen name="large">48sp</dimen>
+<dimen name="large">20sp</dimen>
 </resources>

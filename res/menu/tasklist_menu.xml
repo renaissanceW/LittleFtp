@@ -3,7 +3,7 @@
     
      <item android:id="@+id/tasklist_setting"
           android:icon="@drawable/ic_menu_setting"
-          android:title="@string/login_setting"
+          android:title="@string/tasklist_setting"
           android:showAsAction="ifRoom|withText"
           /> 
     

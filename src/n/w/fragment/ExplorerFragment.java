@@ -1,5 +1,10 @@
-package n.w;
+package n.w.fragment;
 
+import n.w.MainActivity;
+import n.w.R;
+import n.w.background.CommonFile;
+import n.w.background.Master;
+import n.w.uitil.C;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
@@ -29,7 +34,7 @@ import android.widget.Toast;
 
 public class ExplorerFragment extends Fragment {
 
-	class ExplorerTabListener implements ActionBar.TabListener {
+	public class ExplorerTabListener implements ActionBar.TabListener {
 
 		public void onTabSelected(Tab tab, FragmentTransaction ft) {
 			ft.add(android.R.id.content, ExplorerFragment.this, null);
@@ -239,7 +244,7 @@ public class ExplorerFragment extends Fragment {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
 			return builder
-					.setTitle(R.string.delete_confirm)
+					.setTitle(R.string.delete_confirm_title)
 					.setPositiveButton("ok",
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,

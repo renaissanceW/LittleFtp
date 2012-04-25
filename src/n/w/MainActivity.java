@@ -7,8 +7,11 @@ import n.w.R.string;
 import n.w.fragment.ExplorerFragment;
 import n.w.fragment.LoginFragment;
 import n.w.fragment.TaskListFragment;
+import n.w.uitil.MyLog;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
@@ -56,6 +59,16 @@ public class MainActivity extends Activity {
 	
 	
 	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		// TODO Auto-generated method stub
+		super.onConfigurationChanged(newConfig);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		MyLog.d("MainActivity", "onConfigurationChanged");
+	}
+
+
+
 	/*
 	 * THE RESOURCE PART
 	 * 	

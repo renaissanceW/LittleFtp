@@ -72,6 +72,14 @@ public class TaskManager {
 		}
 	}
 	
+	public synchronized void killWorkerById(int id){
+		C.sendMessage(mWorker[id].getHandler(), C.MSG_WORKER_KILL,null);
+		mWorker[id] = null;
+		mFreeWorkerPool.remove(id);
+		mCurrentWorkerCount--;
+		mNewWorkerCount--;
+	}
+	
 	/*c should never exceed MAX_WORKER_COUNT*/
 	public synchronized void adjustWorkerPoolSize(int c){
 		mNewWorkerCount = c;

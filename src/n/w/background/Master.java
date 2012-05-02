@@ -41,6 +41,7 @@ public class Master extends Thread{
 	/*local fs*/
 	private static final String localRoot = "/sdcard/Download";
 	private File mFile = new File(localRoot);
+	private File mRootFile = new File(localRoot);
 
 	
 	private Handler mCallerHandler;
@@ -156,6 +157,11 @@ public class Master extends Thread{
 			case C.MSG_WORKER_FILEOP_REPLY:
 				Task t = (Task)msg.obj;
 				mManager.finishTask(t);
+				/*if fail, we stop this worker*/
+				if(msg.arg1==C.FTP_OP_FAIL){
+					mManager.killWorkerById(msg.arg2);
+				}
+				
 				mManager.schedule();
 				sendReply(C.MSG_TASKLIST_UPDATE,0,mManager.getAllTask());
 				break;
@@ -353,8 +359,9 @@ public class Master extends Thread{
 	
 	private void backDirLocal(){
 		
-		File f = mFile.getParentFile();
-		mFile= (f==null? mFile:f);
+		if(!mFile.getAbsolutePath().equals(mRootFile.getAbsolutePath())){
+			mFile = mFile.getParentFile();
+		}
 		MyLog.d("Master", "backDirLocal succ:" + mFile.getAbsolutePath());
 		sendReply(C.MSG_MASTER_BACK_REPLY, C.FTP_OP_SUCC, null);
 	}

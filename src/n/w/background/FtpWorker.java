@@ -96,7 +96,7 @@ public class FtpWorker extends Thread {
 	
 	/*there must be only one caller at a time*/
 	void sendReply(int what, int status, Object obj){
-		mCallerHandler.obtainMessage(what, status, 0, obj).sendToTarget();
+		mCallerHandler.obtainMessage(what, status, mId, obj).sendToTarget();
 	}
 	
 	
